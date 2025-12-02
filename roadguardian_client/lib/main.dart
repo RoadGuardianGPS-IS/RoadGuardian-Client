@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
 import 'features/gestione_profilo_utente/models/user.dart';
+import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,7 +25,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: CancellazioneProfiloPage(user: defaultUser), // Passo l'utente qui
+      // Apri direttamente la mappa all'avvio
+      home: const MappaPage(),
     );
   }
 }
