@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:roadguardian_client/features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
 import 'package:roadguardian_client/services/api/mock_service.dart';
-
+import 'package:roadguardian_client/features/gestione_profilo_utente/models/user.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -18,12 +19,12 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController phoneController = TextEditingController();
 
   bool loading = false;
-  List users = [];
+  List<User> users = [];
 
   @override
   void initState() {
     super.initState();
-    _loadUsers(); // Carica gli utenti all’avvio
+    _loadUsers();
   }
 
   void _loadUsers() async {
@@ -51,9 +52,10 @@ class _RegisterPageState extends State<RegisterPage> {
       '${nameController.text} ${surnameController.text}',
       emailController.text,
       passwordController.text,
+      phone: phoneController.text,
     );
 
-    if (!mounted) return; // Evita di usare context se il widget è smontato
+    if (!mounted) return;
 
     setState(() {
       loading = false;
@@ -68,6 +70,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Utente ${newUser.name} registrato!')),
+    );
+
+    // Passa l'utente registrato alla pagina di cancellazione/modifica profilo
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CancellazioneProfiloPage(user: newUser),
+      ),
     );
   }
 
@@ -174,9 +184,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text(
+              const Text(
                 'Utenti registrati:',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               ListView.builder(
@@ -187,7 +197,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   final user = users[index];
                   return ListTile(
                     title: Text(user.name),
-                    subtitle: Text(user.email),
+                    subtitle: Text('${user.email} - ${user.phone ?? ""}'),
                   );
                 },
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'features/gestione_profilo_utente/pages/register_page.dart';
+import 'features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
+import 'features/gestione_profilo_utente/models/user.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,16 +9,22 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // Utente di default per avviare l'app
+    final defaultUser = User(
+      name: "Mario Rossi",
+      email: "mario.rossi@studenti.unisa.it",
+      password: "password123",
+      phone: "+39 333 1234567",
+    );
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // Correzione della sintassi per il colorScheme
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const RegisterPage(), // Imposta la pagina iniziale sul RegisterPage
+      home: CancellazioneProfiloPage(user: defaultUser), // Passo l'utente qui
     );
   }
 }
