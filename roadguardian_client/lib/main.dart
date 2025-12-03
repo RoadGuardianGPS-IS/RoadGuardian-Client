@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
-import 'features/gestione_profilo_utente/models/user.dart';
+import 'features/gestione_profilo_utente/models/user_model.dart';
 import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
 
 void main() {
@@ -13,11 +13,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Utente di default per avviare l'app
-    final defaultUser = User(
-      name: "Mario Rossi",
+    final defaultUser = UserModel(
+      id: "0",
+      nome: "Mario",
+      cognome: "Rossi",
       email: "mario.rossi@studenti.unisa.it",
       password: "password123",
-      phone: "+39 333 1234567",
+      numeroTelefono: "+39 333 1234567",
     );
 
     return MaterialApp(

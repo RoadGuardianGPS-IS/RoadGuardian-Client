@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:roadguardian_client/features/gestione_profilo_utente/pages/register_page.dart';
-import 'package:roadguardian_client/services/api/mock_service.dart';
-import '../models/user.dart';
+import '../models/user_model.dart';
 
 class CancellazioneProfiloPage extends StatefulWidget {
-  final User user; // Riceve l'utente registrato
+  final UserModel user; // CORRETTO
 
   const CancellazioneProfiloPage({super.key, required this.user});
 
@@ -24,12 +23,12 @@ class _CancellazioneProfiloPageState extends State<CancellazioneProfiloPage> {
   @override
   void initState() {
     super.initState();
-    final parts = widget.user.name.split(' ');
-    _nomeController = TextEditingController(text: parts[0]);
-    _cognomeController = TextEditingController(text: parts.length > 1 ? parts[1] : '');
+
+    _nomeController = TextEditingController(text: widget.user.nome);
+    _cognomeController = TextEditingController(text: widget.user.cognome);
     _emailController = TextEditingController(text: widget.user.email);
-    _telefonoController = TextEditingController(text: widget.user.phone ?? '');
-    _passwordController = TextEditingController(text: widget.user.password);
+    _telefonoController = TextEditingController(text: widget.user.numeroTelefono ?? '');
+    _passwordController = TextEditingController(text: widget.user.password ?? '');
   }
 
   @override
@@ -105,6 +104,8 @@ class _CancellazioneProfiloPageState extends State<CancellazioneProfiloPage> {
                 ),
               ),
               const SizedBox(height: 40),
+
+              // BOTTONE SALVA MODIFICHE
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -129,7 +130,9 @@ class _CancellazioneProfiloPageState extends State<CancellazioneProfiloPage> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
+
               // CANCELLAZIONE UTENTE
               SizedBox(
                 width: double.infinity,
@@ -156,7 +159,6 @@ class _CancellazioneProfiloPageState extends State<CancellazioneProfiloPage> {
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);
-                                // Naviga direttamente alla pagina di registrazione
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:roadguardian_client/features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
 import 'package:roadguardian_client/services/api/mock_service.dart';
-import 'package:roadguardian_client/features/gestione_profilo_utente/models/user.dart';
+import 'package:roadguardian_client/features/gestione_profilo_utente/models/user_model.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -19,7 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController phoneController = TextEditingController();
 
   bool loading = false;
-  List<User> users = [];
+  List<UserModel> users = [];
 
   @override
   void initState() {
@@ -48,8 +48,10 @@ class _RegisterPageState extends State<RegisterPage> {
       loading = true;
     });
 
+    final fullName = '${nameController.text} ${surnameController.text}';
+
     final newUser = await registerUser(
-      '${nameController.text} ${surnameController.text}',
+      fullName,
       emailController.text,
       passwordController.text,
       phone: phoneController.text,
@@ -69,10 +71,9 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Utente ${newUser.name} registrato!')),
+      SnackBar(content: Text('Utente ${newUser.nome} registrato!')),
     );
 
-    // Passa l'utente registrato alla pagina di cancellazione/modifica profilo
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -99,6 +100,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               const SizedBox(height: 40),
+
+              // FORM
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -160,7 +163,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 40),
+
+              // BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -177,27 +183,34 @@ class _RegisterPageState extends State<RegisterPage> {
                       : const Text(
                           "CONFERMA REGISTRAZIONE",
                           style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
+
               const SizedBox(height: 20),
+
               const Text(
                 'Utenti registrati:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+
               const SizedBox(height: 10),
+
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: users.length,
                 itemBuilder: (context, index) {
                   final user = users[index];
+                  // user.nome, user.cognome e user.email sono non-nullable per come è definita la UserModel
+                  // user.numeroTelefono rimane opzionale: uso ?? '' per sicurezza
                   return ListTile(
-                    title: Text(user.name),
-                    subtitle: Text('${user.email} - ${user.phone ?? ""}'),
+                    title: Text('${user.nome} ${user.cognome}'),
+                    subtitle: Text('${user.email} • ${user.numeroTelefono ?? ""}'),
                   );
                 },
               ),
