@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roadguardian_client/features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
+import 'package:roadguardian_client/features/gestione_profilo_utente/pages/modifica_profilo_page.dart';
 import 'package:roadguardian_client/services/api/mock_service.dart';
 import 'package:roadguardian_client/features/gestione_profilo_utente/models/user_model.dart';
 
@@ -74,10 +74,11 @@ class _RegisterPageState extends State<RegisterPage> {
       SnackBar(content: Text('Utente ${newUser.nome} registrato!')),
     );
 
+    // <-- CORREZIONE: uso ModificaProfiloPage (classe importata)
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => CancellazioneProfiloPage(user: newUser),
+        builder: (_) => ModificaProfiloPage(user: newUser),
       ),
     );
   }
@@ -206,8 +207,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 itemCount: users.length,
                 itemBuilder: (context, index) {
                   final user = users[index];
-                  // user.nome, user.cognome e user.email sono non-nullable per come è definita la UserModel
-                  // user.numeroTelefono rimane opzionale: uso ?? '' per sicurezza
                   return ListTile(
                     title: Text('${user.nome} ${user.cognome}'),
                     subtitle: Text('${user.email} • ${user.numeroTelefono ?? ""}'),
