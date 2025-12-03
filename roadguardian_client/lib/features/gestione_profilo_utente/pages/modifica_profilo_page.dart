@@ -14,7 +14,6 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
   final TextEditingController _telefonoController = TextEditingController(text: "+39 333 1234567");
   final TextEditingController _passwordController = TextEditingController(text: "password123");
 
-  // Variabile di stato per gestire la visibilità della password
   bool _obscurePassword = true;
 
   @override
@@ -36,14 +35,7 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 60, color: customPurple),
-                ),
-              ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
@@ -58,10 +50,10 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
                     _buildTextField("Telefono", _telefonoController, isPhone: true),
                     const SizedBox(height: 16),
 
-                    // Campo Password con logica di visibilità
+                    // Campo Password
                     TextField(
                       controller: _passwordController,
-                      obscureText: _obscurePassword, // Usa la variabile di stato
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: "Password",
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),

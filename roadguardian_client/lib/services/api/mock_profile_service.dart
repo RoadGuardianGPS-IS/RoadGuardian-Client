@@ -9,7 +9,6 @@ class MockProfileService {
     "cognome": "Rossi",
     "email": "mario.rossi@studenti.unisa.it",
     "telefono": "+39 333 1234567",
-    "foto_profilo": null,
     "password": "passwordSegreta123"
   };
 

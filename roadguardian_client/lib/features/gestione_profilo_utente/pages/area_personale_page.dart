@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+// Assicurati che il percorso sia corretto in base alla tua struttura
 import '../../../services/api/mock_profile_service.dart';
 import 'modifica_profilo_page.dart';
 
@@ -84,8 +85,6 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const SegnalazioniPage(titolo: "Storico Segnalazioni")));
                       },
                     ),
-
-
                   ],
                 ),
               ),
@@ -132,8 +131,7 @@ class DettagliProfiloPage extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              Center(child: CircleAvatar(radius: 50, backgroundColor: Colors.white, child: Icon(Icons.person, size: 60, color: customPurple))),
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
@@ -147,7 +145,7 @@ class DettagliProfiloPage extends StatelessWidget {
                     const Divider(),
                     _buildInfoRow("Telefono", utente.numeroTelefono ?? "-"),
                     const Divider(),
-                    // NUOVO CAMPO PASSWORD (Visualizza pallini o testo placeholder)
+                    // Campo Password
                     _buildInfoRow("Password", "••••••••"),
                   ],
                 ),

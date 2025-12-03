@@ -4,7 +4,6 @@ class UserModel {
   final String cognome;
   final String email;
   final String? numeroTelefono;
-  final String? fotoProfiloUrl;
   final String? password;
 
   UserModel({
@@ -13,7 +12,6 @@ class UserModel {
     required this.cognome,
     required this.email,
     this.numeroTelefono,
-    this.fotoProfiloUrl,
     this.password,
   });
 
@@ -24,7 +22,6 @@ class UserModel {
       cognome: json['cognome'] ?? '',
       email: json['email'] ?? '',
       numeroTelefono: json['telefono'],
-      fotoProfiloUrl: json['foto_profilo'],
       password: json['password'] ,
     );
   }
@@ -36,7 +33,6 @@ class UserModel {
       'cognome': cognome,
       'email': email,
       'telefono': numeroTelefono,
-      'foto_profilo': fotoProfiloUrl,
       'password': password,
     };
   }
