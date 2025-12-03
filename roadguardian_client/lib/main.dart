@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
 import 'features/gestione_profilo_utente/models/user_model.dart';
 import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
+import 'features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Utente di default per avviare l'app
+    // Utente di default per eventuale uso futuro
     final defaultUser = UserModel(
       id: "0",
       nome: "Mario",
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      // Apri direttamente la mappa all'avvio
+      // Apri direttamente la mappa all'avvio senza passare user
       home: const MappaPage(),
     );
   }
