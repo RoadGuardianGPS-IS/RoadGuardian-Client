@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'features/gestione_profilo_utente/models/user_model.dart';
 import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
-import 'features/gestione_profilo_utente/pages/cancellazione_profilo.dart';
+import 'features/gestione_profilo_utente/pages/modifica_profilo_page.dart';
+import 'features/gestione_profilo_utente/pages/area_personale_page.dart';
 
 void main() {
   runApp(const MyApp());

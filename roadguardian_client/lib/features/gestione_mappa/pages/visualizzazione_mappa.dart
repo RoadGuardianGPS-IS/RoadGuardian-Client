@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:roadguardian_client/features/gestione_profilo_utente/pages/login_page.dart';
 
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
@@ -13,7 +14,7 @@ class _MappaPageState extends State<MappaPage> {
   final LatLng napoliLatLng = LatLng(40.8522, 14.2681);
 
   late final MapController _mapController;
-  double _currentZoom = 13.0; // Zoom iniziale
+  double _currentZoom = 13.0;
 
   @override
   void initState() {
@@ -33,6 +34,13 @@ class _MappaPageState extends State<MappaPage> {
       if (_currentZoom > 5) _currentZoom--;
       _mapController.move(napoliLatLng, _currentZoom);
     });
+  }
+
+  void _goToLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
   }
 
   @override
@@ -59,8 +67,8 @@ class _MappaPageState extends State<MappaPage> {
               MarkerLayer(
                 markers: [
                   Marker(
-                    width: 40,  // Aumentato da 20 a 40
-                    height: 40, // Aumentato da 20 a 40
+                    width: 40,
+                    height: 40,
                     point: napoliLatLng,
                     builder: (ctx) => Container(
                       decoration: BoxDecoration(
@@ -79,6 +87,17 @@ class _MappaPageState extends State<MappaPage> {
             right: 10,
             child: Column(
               children: [
+                // Pulsante login utente
+                FloatingActionButton(
+                  heroTag: 'user_btn',
+                  mini: false,
+                  onPressed: _goToLogin,
+                  backgroundColor: Colors.deepPurple,
+                  child: const Icon(Icons.person, size: 28),
+                ),
+                const SizedBox(height: 12),
+
+                // Pulsante zoom in
                 FloatingActionButton(
                   heroTag: 'zoom_in',
                   mini: true,
@@ -86,6 +105,8 @@ class _MappaPageState extends State<MappaPage> {
                   child: const Icon(Icons.add),
                 ),
                 const SizedBox(height: 8),
+
+                // Pulsante zoom out
                 FloatingActionButton(
                   heroTag: 'zoom_out',
                   mini: true,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:roadguardian_client/features/gestione_profilo_utente/pages/modifica_profilo_page.dart';
-import 'package:roadguardian_client/services/api/mock_service.dart';
-import 'package:roadguardian_client/features/gestione_profilo_utente/models/user_model.dart';
-
+import '../models/user_model.dart';
+import 'package:roadguardian_client/services/api/mock_profile_service.dart';
+import 'area_personale_page.dart';  // Import corretto di AreaPersonalePage
+import 'login_page.dart';           // Import corretto di LoginPage
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -18,68 +18,47 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
+  final MockProfileService _service = MockProfileService();
   bool loading = false;
-  List<UserModel> users = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUsers();
-  }
-
-  void _loadUsers() async {
-    final fetchedUsers = await fetchUsers();
-    if (!mounted) return;
-    setState(() {
-      users = fetchedUsers;
-    });
-  }
-
-  void _register() async {
+  void _register() {
     if (passwordController.text != confirmPasswordController.text) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Le password non coincidono!')),
       );
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     final fullName = '${nameController.text} ${surnameController.text}';
+    final parts = fullName.trim().split(' ');
+    final nome = parts.isNotEmpty ? parts.first : '';
+    final cognome = parts.length > 1 ? parts.sublist(1).join(' ') : '';
 
-    final newUser = await registerUser(
-      fullName,
-      emailController.text,
-      passwordController.text,
-      phone: phoneController.text,
+    final newUser = UserModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      nome: nome,
+      cognome: cognome,
+      email: emailController.text,
+      password: passwordController.text,
+      numeroTelefono: phoneController.text,
     );
 
-    if (!mounted) return;
+    _service.registerUser(newUser);
 
-    setState(() {
-      loading = false;
-      nameController.clear();
-      surnameController.clear();
-      emailController.clear();
-      passwordController.clear();
-      confirmPasswordController.clear();
-      phoneController.clear();
-      users.add(newUser);
-    });
+    setState(() => loading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Utente ${newUser.nome} registrato!')),
-    );
-
-    // <-- CORREZIONE: uso ModificaProfiloPage (classe importata)
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => ModificaProfiloPage(user: newUser),
-      ),
+      MaterialPageRoute(builder: (_) => AreaPersonalePage(user: newUser)),
+    );
+  }
+
+  void _goToLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
     );
   }
 
@@ -91,7 +70,6 @@ class _RegisterPageState extends State<RegisterPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
               const Center(
@@ -101,8 +79,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // FORM
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -113,105 +89,66 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: "Nome",
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: "Nome", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: surnameController,
-                      decoration: const InputDecoration(
-                        labelText: "Cognome",
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: "Cognome", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: emailController,
-                      decoration: const InputDecoration(
-                        labelText: "Email",
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: "Email", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: "Password",
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: "Password", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: confirmPasswordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: "Conferma Password",
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: "Conferma Password", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: "Numero di telefono",
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: "Numero di telefono", border: OutlineInputBorder()),
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 40),
-
-              // BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
                   onPressed: loading ? null : _register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6561C0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          "CONFERMA REGISTRAZIONE",
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      : const Text("REGISTRATI", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Utenti registrati:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 10),
-
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return ListTile(
-                    title: Text('${user.nome} ${user.cognome}'),
-                    subtitle: Text('${user.email} • ${user.numeroTelefono ?? ""}'),
-                  );
-                },
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: _goToLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text("TORNA AL LOGIN", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
               ),
             ],
           ),
