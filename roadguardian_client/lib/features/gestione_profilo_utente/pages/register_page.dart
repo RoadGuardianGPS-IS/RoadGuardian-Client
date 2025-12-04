@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
-import 'area_personale_page.dart';
+import 'area_personale_page.dart'; // Import corretto
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -22,21 +22,45 @@ class _RegisterPageState extends State<RegisterPage> {
   final MockProfileService _service = MockProfileService();
   bool loading = false;
 
+  final RegExp _emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+  final RegExp _italianPhoneRegExp = RegExp(r'^3\d{9}$'); // Esempio: 3662189394
+
   void _register() async {
-    if (passwordController.text != confirmPasswordController.text) {
+    String nome = nameController.text.trim();
+    String cognome = surnameController.text.trim();
+    String email = emailController.text.trim();
+    String password = passwordController.text;
+    String confirmPassword = confirmPasswordController.text;
+    String phone = phoneController.text.trim();
+
+    // Password check
+    if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Le password non coincidono!')),
       );
       return;
     }
 
+    // Email format check
+    if (!_emailRegExp.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Formato email non valido!')),
+      );
+      return;
+    }
+
+    // Numero di telefono check
+    if (phone.isNotEmpty && !_italianPhoneRegExp.hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Numero di telefono non valido (formato italiano)!')),
+      );
+      return;
+    }
+
     setState(() => loading = true);
 
-    final nome = nameController.text.trim();
-    final cognome = surnameController.text.trim();
-
     // Controlla se l'email è già registrata
-    final existingUser = await _service.fetchUserByEmail(emailController.text);
+    final existingUser = await _service.fetchUserByEmail(email);
     if (existingUser != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Email già registrata!')),
@@ -49,12 +73,12 @@ class _RegisterPageState extends State<RegisterPage> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       nome: nome,
       cognome: cognome,
-      email: emailController.text.trim(),
-      password: passwordController.text,
-      numeroTelefono: phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
+      email: email,
+      password: password,
+      numeroTelefono: phone.isEmpty ? null : phone,
     );
 
-    // Salva utente nel servizio
+    // Salva utente
     _service.registerUser(newUser);
 
     // Imposta utente corrente
@@ -62,7 +86,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => loading = false);
 
-    // Vai direttamente alla AreaPersonalePage
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,

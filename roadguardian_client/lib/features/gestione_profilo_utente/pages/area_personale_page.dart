@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'modifica_profilo_page.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
+import 'logout_page.dart'; // Import della pagina logout
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
 
 // ---------------- DETTAGLI PROFILO ----------------
@@ -111,9 +112,7 @@ class DettagliProfiloPage extends StatelessWidget {
                       );
 
                       // Mostra popup account cancellato
-                      await Future.delayed(const Duration(
-                          milliseconds:
-                              300)); // piccolo delay per essere sicuri che la MappaPage sia montata
+                      await Future.delayed(const Duration(milliseconds: 300));
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -309,7 +308,7 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Bottone LOGOUT
+              // Bottone LOGOUT -> porta a LogoutPage
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -318,7 +317,7 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                     MockProfileService().currentUser = null;
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (_) => const MappaPage()),
+                      MaterialPageRoute(builder: (_) => const LogoutPage()),
                       (route) => false,
                     );
                   },
