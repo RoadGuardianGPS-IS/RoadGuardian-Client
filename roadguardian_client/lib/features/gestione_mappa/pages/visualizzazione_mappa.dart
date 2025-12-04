@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:roadguardian_client/features/gestione_profilo_utente/pages/login_page.dart';
+import 'package:roadguardian_client/features/gestione_profilo_utente/pages/area_personale_page.dart';
+import 'package:roadguardian_client/services/api/mock_profile_service.dart';
 
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
@@ -12,7 +14,6 @@ class MappaPage extends StatefulWidget {
 
 class _MappaPageState extends State<MappaPage> {
   final LatLng napoliLatLng = LatLng(40.8522, 14.2681);
-
   late final MapController _mapController;
   double _currentZoom = 13.0;
 
@@ -36,11 +37,23 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-  void _goToLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
+  void _goToUserArea() {
+    final currentUser = MockProfileService().currentUser;
+
+    if (currentUser != null) {
+      // Utente già loggato -> area personale
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => AreaPersonalePage(user: currentUser)),
+      );
+    } else {
+      // Nessun utente loggato -> login
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    }
   }
 
   @override
@@ -87,11 +100,11 @@ class _MappaPageState extends State<MappaPage> {
             right: 10,
             child: Column(
               children: [
-                // Pulsante login utente
+                // Pulsante utente
                 FloatingActionButton(
                   heroTag: 'user_btn',
                   mini: false,
-                  onPressed: _goToLogin,
+                  onPressed: _goToUserArea,
                   backgroundColor: Colors.deepPurple,
                   child: const Icon(Icons.person, size: 28),
                 ),

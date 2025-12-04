@@ -19,16 +19,32 @@ class _LoginPageState extends State<LoginPage> {
 
   bool loading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Se c'è già un utente loggato, vai direttamente all'area personale
+    if (_service.currentUser != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => AreaPersonalePage(user: _service.currentUser!)),
+        );
+      });
+    }
+  }
+
   void _login() async {
     setState(() => loading = true);
 
-    // Recupera utente dalla email
     UserModel? user = await _service.fetchUserByEmail(emailController.text);
 
     if (user == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Utente non trovato')));
     } else if (passwordController.text == user.password) {
+      _service.currentUser = user; // salva sessione
+
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -73,10 +89,8 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              const Center(
-                  child: Text('LOGIN',
-                      style:
-                          TextStyle(fontSize: 28, fontWeight: FontWeight.bold))),
+              const Text("LOGIN",
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -114,8 +128,8 @@ class _LoginPageState extends State<LoginPage> {
                       : const Text("LOGIN",
                           style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -131,8 +145,8 @@ class _LoginPageState extends State<LoginPage> {
                   child: const Text("REGISTRATI",
                       style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -148,8 +162,8 @@ class _LoginPageState extends State<LoginPage> {
                   child: const Text("TORNA ALLA MAPPA",
                       style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

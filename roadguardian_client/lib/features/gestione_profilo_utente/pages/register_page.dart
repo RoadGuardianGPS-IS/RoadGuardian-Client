@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
-import 'area_personale_page.dart';  // Import corretto di AreaPersonalePage
-import 'login_page.dart';           // Import corretto di LoginPage
+import 'area_personale_page.dart';
+import 'login_page.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -21,7 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final MockProfileService _service = MockProfileService();
   bool loading = false;
 
-  void _register() {
+  void _register() async {
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Le password non coincidono!')),
@@ -31,27 +32,42 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => loading = true);
 
-    final fullName = '${nameController.text} ${surnameController.text}';
-    final parts = fullName.trim().split(' ');
-    final nome = parts.isNotEmpty ? parts.first : '';
-    final cognome = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+    final nome = nameController.text.trim();
+    final cognome = surnameController.text.trim();
+
+    // Controlla se l'email è già registrata
+    final existingUser = await _service.fetchUserByEmail(emailController.text);
+    if (existingUser != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email già registrata!')),
+      );
+      setState(() => loading = false);
+      return;
+    }
 
     final newUser = UserModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       nome: nome,
       cognome: cognome,
-      email: emailController.text,
+      email: emailController.text.trim(),
       password: passwordController.text,
-      numeroTelefono: phoneController.text,
+      numeroTelefono: phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
     );
 
+    // Salva utente nel servizio
     _service.registerUser(newUser);
+
+    // Imposta utente corrente
+    _service.currentUser = newUser;
 
     setState(() => loading = false);
 
-    Navigator.pushReplacement(
+    // Vai direttamente alla AreaPersonalePage
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => AreaPersonalePage(user: newUser)),
+      (route) => false,
     );
   }
 
@@ -134,7 +150,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("REGISTRATI", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      : const Text(
+                          "REGISTRATI",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -147,7 +166,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text("TORNA AL LOGIN", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  child: const Text(
+                    "TORNA AL LOGIN",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                 ),
               ),
             ],
