@@ -129,7 +129,7 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
   Widget _buildTextField(String label, TextEditingController controller, {bool readOnly = false, bool isPhone = false}) {
     return TextField(
       controller: controller,
-      readOnly: readOnly,
+      readOnly: readOnly,  //ciao
       keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,
