@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'features/gestione_profilo_utente/models/user_model.dart';
+// import 'features/gestione_profilo_utente/models/user_model.dart'; // RIMOSSO PER BRANCH MAPPA
 import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
-import 'features/gestione_profilo_utente/pages/modifica_profilo_page.dart';
-import 'features/gestione_profilo_utente/pages/area_personale_page.dart';
+// import 'features/gestione_profilo_utente/pages/modifica_profilo_page.dart'; // RIMOSSO PER BRANCH MAPPA
+// import 'features/gestione_profilo_utente/pages/area_personale_page.dart'; // RIMOSSO PER BRANCH MAPPA
 
 void main() {
   runApp(const MyApp());
@@ -13,22 +13,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Utente di default per eventuale uso futuro
-    final defaultUser = UserModel(
-      id: "0",
-      nome: "Mario",
-      cognome: "Rossi",
-      email: "mario.rossi@studenti.unisa.it",
-      password: "password123",
-      numeroTelefono: "+39 333 1234567",
-    );
+    // Utente di default rimosso perché UserModel non esiste in questo branch
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'RoadGuardian',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      // Apri direttamente la mappa all'avvio senza passare user
+      // Apri direttamente la mappa all'avvio
       home: const MappaPage(),
     );
   }
