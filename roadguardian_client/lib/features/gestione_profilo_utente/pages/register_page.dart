@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
-import 'area_personale_page.dart'; // Import corretto
+import 'area_personale_page.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -23,9 +23,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool loading = false;
 
   final RegExp _emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-  final RegExp _italianPhoneRegExp = RegExp(r'^3\d{9}$'); // Esempio: 3662189394
+  final RegExp _italianPhoneRegExp = RegExp(r'^3\d{9}$');
 
-  void _register() async {
+  void _register() { // Rimosso 'async' perché il mock è sincrono
     String nome = nameController.text.trim();
     String cognome = surnameController.text.trim();
     String email = emailController.text.trim();
@@ -33,43 +33,31 @@ class _RegisterPageState extends State<RegisterPage> {
     String confirmPassword = confirmPasswordController.text;
     String phone = phoneController.text.trim();
 
-    // Password check
+    // Validazioni
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le password non coincidono!')),
+        const SnackBar(content: Text('Le password non corrispondono')),
       );
       return;
     }
 
-    // Email format check
     if (!_emailRegExp.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Formato email non valido!')),
+        const SnackBar(content: Text('Inserisci un indirizzo email valido')),
       );
       return;
     }
 
-    // Numero di telefono check
     if (phone.isNotEmpty && !_italianPhoneRegExp.hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Numero di telefono non valido (formato italiano)!')),
+        const SnackBar(content: Text('Numero di telefono non valido (es. 3331234567)')),
       );
       return;
     }
 
     setState(() => loading = true);
 
-    // Controlla se l'email è già registrata
-    final existingUser = await _service.fetchUserByEmail(email);
-    if (existingUser != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email già registrata!')),
-      );
-      setState(() => loading = false);
-      return;
-    }
-
-    final newUser = UserModel(
+    UserModel newUser = UserModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       nome: nome,
       cognome: cognome,
@@ -78,15 +66,13 @@ class _RegisterPageState extends State<RegisterPage> {
       numeroTelefono: phone.isEmpty ? null : phone,
     );
 
-    // Salva utente
+    // --- CORREZIONE: Rimosso 'await' ---
     _service.registerUser(newUser);
-
-    // Imposta utente corrente
-    _service.currentUser = newUser;
 
     setState(() => loading = false);
 
-    if (!mounted) return;
+    // Login automatico dopo registrazione
+    _service.currentUser = newUser;
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => AreaPersonalePage(user: newUser)),
@@ -110,13 +96,8 @@ class _RegisterPageState extends State<RegisterPage> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const SizedBox(height: 20),
-              const Center(
-                child: Text(
-                  "AREA REGISTRAZIONE",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-              ),
+              const SizedBox(height: 40),
+              const Text("REGISTRAZIONE", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -142,6 +123,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(labelText: "Telefono (opzionale)", border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
                       controller: passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(labelText: "Password", border: OutlineInputBorder()),
@@ -151,12 +138,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       controller: confirmPasswordController,
                       obscureText: true,
                       decoration: const InputDecoration(labelText: "Conferma Password", border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(labelText: "Numero di telefono", border: OutlineInputBorder()),
                     ),
                   ],
                 ),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'features/gestione_profilo_utente/models/user_model.dart';
-import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
+// import 'features/gestione_mappa/pages/visualizzazione_mappa.dart'; // MANTENERE COMMENTATO NEL BRANCH UTENTE
 import 'features/gestione_profilo_utente/pages/modifica_profilo_page.dart';
 import 'features/gestione_profilo_utente/pages/area_personale_page.dart';
+import 'features/gestione_profilo_utente/pages/register_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,12 +25,12 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'RoadGuardian',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      // Apri direttamente la mappa all'avvio senza passare user
-      home: const RegisterPage(),
+      // --- CORREZIONE: Rimosso 'const' qui sotto ---
+      home: RegisterPage(),
     );
   }
 }

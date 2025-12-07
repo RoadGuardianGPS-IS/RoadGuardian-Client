@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
-import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
+// import '../../gestione_mappa/pages/visualizzazione_mappa.dart'; // COMMENTATO PER IL BRANCH UTENTE
 
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
@@ -8,7 +8,7 @@ class LogoutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color bgGrey = Color(0xFFF0F0F0);
-    const Color buttonPurple = Color(0xFF6561C0); // stesso colore LoginPage
+    const Color buttonPurple = Color(0xFF6561C0);
     const Color buttonGreen = Colors.green;
 
     return Scaffold(
@@ -80,7 +80,7 @@ class LogoutPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // scritta bianca
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -88,16 +88,22 @@ class LogoutPage extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Bottone TORNA ALLA MAPPA -> MappaPage
+              // Bottone TORNA ALLA MAPPA -> Disabilitato temporaneamente
               SizedBox(
                 width: 320,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    // TODO: De-commentare dopo il merge con il branch MAPPA
+                    /*
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (_) => const MappaPage()),
                       (route) => false,
+                    );
+                    */
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Mappa non disponibile in questo branch")),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -111,7 +117,7 @@ class LogoutPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // scritta bianca
+                      color: Colors.white,
                     ),
                   ),
                 ),

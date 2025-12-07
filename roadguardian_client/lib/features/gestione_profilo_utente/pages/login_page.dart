@@ -3,7 +3,7 @@ import '../models/user_model.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
 import 'area_personale_page.dart';
 import 'register_page.dart';
-import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
+// import '../../gestione_mappa/pages/visualizzazione_mappa.dart'; // COMMENTATO
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,7 +22,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    // Se c'è già un utente loggato, vai direttamente all'area personale
     if (_service.currentUser != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
@@ -36,15 +35,13 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() async {
     setState(() => loading = true);
-
     UserModel? user = await _service.fetchUserByEmail(emailController.text);
 
     if (user == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Utente non trovato')));
     } else if (passwordController.text == user.password) {
-      _service.currentUser = user; // salva sessione
-
+      _service.currentUser = user;
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -55,7 +52,6 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Password errata')));
     }
-
     setState(() => loading = false);
   }
 
@@ -67,10 +63,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _goToMappa() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const MappaPage()),
-      (route) => false,
+    // Navigazione disabilitata per mancanza file
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Mappa non disponibile in questo branch")),
     );
   }
 
