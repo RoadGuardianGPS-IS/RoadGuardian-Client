@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart'; // Serve per calcolare la distanza
+import 'package:latlong2/latlong.dart';
+import 'dart:async';
 
-// IMPORT DEL COLLEGA (Gestione Utente - NON TOCCATI)
 import 'package:roadguardian_client/features/gestione_profilo_utente/pages/login_page.dart';
 import 'package:roadguardian_client/features/gestione_profilo_utente/pages/area_personale_page.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
 
-// TUOI IMPORT
 import 'package:roadguardian_client/features/gestione_mappa/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
 import 'package:roadguardian_client/features/gestione_mappa/pages/dettaglio_segnalazione_page.dart';
@@ -20,13 +19,12 @@ class MappaPage extends StatefulWidget {
 }
 
 class _MappaPageState extends State<MappaPage> {
-  // POSIZIONE UTENTE (Napoli Centro)
   final LatLng napoliLatLng = LatLng(40.8522, 14.2681);
+  late LatLng _posizioneUtente;
 
   late final MapController _mapController;
   double _currentZoom = 13.0;
 
-  // Lista segnalazioni
   List<SegnalazioneModel> _segnalazioni = [];
   final MockSegnalazioneService _segnalazioneService = MockSegnalazioneService();
 
@@ -34,39 +32,16 @@ class _MappaPageState extends State<MappaPage> {
   void initState() {
     super.initState();
     _mapController = MapController();
+    _posizioneUtente = napoliLatLng;
     _caricaSegnalazioni();
   }
 
-  // --- LOGICA FILTRO DISTANZA ---
   Future<void> _caricaSegnalazioni() async {
     try {
-      // 1. Scarico TUTTE le segnalazioni dal server
       final tutteLeSegnalazioni = await _segnalazioneService.getSegnalazioniAttive();
-
-      // 2. Preparo il calcolatore di distanze
-      const Distance distanceCalculator = Distance();
-
-      // 3. Filtro solo quelle vicine (< 3 km)
-      final segnalazioniVicine = tutteLeSegnalazioni.where((segnalazione) {
-
-        // Calcolo distanza in Metri
-        final double metri = distanceCalculator.as(
-          LengthUnit.Meter,
-          napoliLatLng, // Posizione Utente
-          LatLng(segnalazione.latitude, segnalazione.longitude) // Posizione Incidente
-        );
-
-        // Debug print per vedere in console cosa succede
-        debugPrint("Segnalazione ${segnalazione.titolo} dista: ${metri.toStringAsFixed(0)} metri.");
-
-        // Tengo solo se distanza <= 3000 metri (3km)
-        return metri <= 3000;
-
-      }).toList();
-
       if (mounted) {
         setState(() {
-          _segnalazioni = segnalazioniVicine;
+          _segnalazioni = tutteLeSegnalazioni;
         });
       }
     } catch (e) {
@@ -105,6 +80,97 @@ class _MappaPageState extends State<MappaPage> {
     }
   }
 
+  void _vaiAllaPosizioneUtente() {
+    setState(() {
+      _posizioneUtente = napoliLatLng;
+      _mapController.move(_posizioneUtente, 16);
+    });
+  }
+
+  // Movimento visivo verso il primo incidente del mock (solo effetto visivo)
+  void _simulaIncidente() async {
+    if (_segnalazioni.isEmpty) return;
+
+    final SegnalazioneModel incidente = _segnalazioni.first;
+    final LatLng centroIncidente = LatLng(incidente.latitude, incidente.longitude);
+
+    // distanza totale lat/lng
+    final double latDiff = centroIncidente.latitude - _posizioneUtente.latitude;
+    final double lngDiff = centroIncidente.longitude - _posizioneUtente.longitude;
+
+    // calcoliamo un fattore per fermarsi vicino al bordo rosso (non al centro)
+    const double distanzaPerc = 1.0; // 85% verso il centro
+    final double latStep = latDiff * distanzaPerc / 100;
+    final double lngStep = lngDiff * distanzaPerc / 100;
+
+    for (int i = 0; i < 100; i++) {
+      await Future.delayed(const Duration(milliseconds: 20), () {
+        setState(() {
+          _posizioneUtente = LatLng(
+            _posizioneUtente.latitude + latStep,
+            _posizioneUtente.longitude + lngStep,
+          );
+          _mapController.move(_posizioneUtente, 16);
+        });
+      });
+    }
+
+    if (!mounted) return;
+    _mostraPopup(incidente);
+  }
+
+  void _mostraPopup(SegnalazioneModel incidente) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.warning, color: Colors.red, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                "Incidente rilevato vicino a ${incidente.titolo}!",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Traffico bloccato nelle vicinanze.\nVuoi visualizzare le linee guida?",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DettaglioSegnalazionePage(
+                        segnalazioneId: incidente.id,
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                ),
+                child: const Text("Vai alle linee guida"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +179,7 @@ class _MappaPageState extends State<MappaPage> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              center: napoliLatLng,
+              center: _posizioneUtente,
               zoom: _currentZoom,
               interactiveFlags: InteractiveFlag.all,
             ),
@@ -123,58 +189,55 @@ class _MappaPageState extends State<MappaPage> {
                 userAgentPackageName: 'com.example.roadguardian',
               ),
 
-              // MARKER SEGNALAZIONI (Solo quelle filtrate appariranno qui)
+              // MARKER SEGNALAZIONI ROSSE
               MarkerLayer(
-                markers: _segnalazioni.map((segnalazione) {
+                markers: _segnalazioni.map((s) {
                   return Marker(
-                    point: LatLng(segnalazione.latitude, segnalazione.longitude),
+                    point: LatLng(s.latitude, s.longitude),
                     width: 40,
                     height: 40,
-                    builder: (context) => GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DettaglioSegnalazionePage(
-                              segnalazioneId: segnalazione.id,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            )
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.priority_high,
-                          color: Colors.white,
-                          size: 24,
-                        ),
+                    builder: (context) => Container(
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
                       ),
+                      child: const Icon(Icons.priority_high, color: Colors.white, size: 24),
                     ),
                   );
                 }).toList(),
               ),
 
-              // MARKER UTENTE (Blu)
+              // CERCHIO ROSSO APPROSSIMATO
+              CircleLayer(
+                circles: _segnalazioni.map((s) {
+                  return CircleMarker(
+                    point: LatLng(s.latitude, s.longitude),
+                    color: Colors.red.withOpacity(0.2),
+                    borderStrokeWidth: 2,
+                    borderColor: Colors.red,
+                    radius: 80,
+                  );
+                }).toList(),
+              ),
+
+              // MARKER UTENTE BLU
               MarkerLayer(
                 markers: [
                   Marker(
-                    point: napoliLatLng,
+                    point: _posizioneUtente,
                     width: 60,
                     height: 60,
                     builder: (context) => Container(
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.2),
+                        color: Colors.blue.withAlpha(51),
                         shape: BoxShape.circle,
                       ),
                       child: Container(
@@ -192,18 +255,25 @@ class _MappaPageState extends State<MappaPage> {
             ],
           ),
 
-          // Tasti Flottanti
           Positioned(
             bottom: 20,
             right: 10,
             child: Column(
               children: [
                 FloatingActionButton(
-                  heroTag: 'user_btn',
+                  heroTag: 'posizione_utente',
                   mini: false,
-                  onPressed: _goToUserArea,
-                  backgroundColor: Colors.deepPurple,
-                  child: const Icon(Icons.person, size: 28, color: Colors.white),
+                  onPressed: _vaiAllaPosizioneUtente,
+                  backgroundColor: Colors.blue,
+                  child: const Icon(Icons.my_location, size: 28, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'fake_incidente',
+                  mini: false,
+                  onPressed: _simulaIncidente,
+                  backgroundColor: Colors.red,
+                  child: const Icon(Icons.warning, size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
