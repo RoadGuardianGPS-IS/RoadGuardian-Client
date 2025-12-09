@@ -1,182 +1,137 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:volume_controller/volume_controller.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 
 class SegnalazioneVelocePage extends StatefulWidget {
-  const SegnalazioneVelocePage({super.key});
+  final Function(LatLng) aggiungiMarkerCallback;
+
+  const SegnalazioneVelocePage({super.key, required this.aggiungiMarkerCallback});
 
   @override
   State<SegnalazioneVelocePage> createState() => _SegnalazioneVelocePageState();
 }
 
 class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
-  double _previousVolume = 0.5;
-  DateTime? _lastPressTime;
-  String _lastDirection = "NONE";
-  final int _comboTimeoutMs = 1500; // Tempo massimo combo in ms
+  LatLng? _ultimaPosizione;
+  bool _mostraNotifica = false;
 
   @override
   void initState() {
     super.initState();
-
-    // Imposta volume iniziale al 50%
-    VolumeController.instance.setVolume(0.5);
-
-    // Listener volume
-    VolumeController.instance.addListener((volume) {
-      _analyzeSequence(volume);
-    }, fetchInitialVolume: true);
+    _aggiornaPosizione();
   }
 
-  void _analyzeSequence(double newVolume) async {
-    final now = DateTime.now();
-    String currentDirection;
-    if (newVolume > _previousVolume) {
-      currentDirection = "UP";
-    } else if (newVolume < _previousVolume) {
-      currentDirection = "DOWN";
-    } else {
-      return;
+  Future<void> _aggiornaPosizione() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _ultimaPosizione = LatLng(pos.latitude, pos.longitude);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Errore ottenendo la posizione: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-    _previousVolume = newVolume;
+  }
 
-    if (_lastDirection != "NONE" && _lastPressTime != null) {
-      final diff = now.difference(_lastPressTime!).inMilliseconds;
-      if (diff < _comboTimeoutMs && _lastDirection != currentDirection) {
-        await _inviaSegnalazione();
-        _resetCombo();
-        return;
-      }
+  void _mostraSegnalazione() {
+    setState(() {
+      _mostraNotifica = true;
+    });
+
+    if (_ultimaPosizione != null) {
+      widget.aggiungiMarkerCallback(_ultimaPosizione!);
     }
-    _lastDirection = currentDirection;
-    _lastPressTime = now;
-  }
 
-  void _resetCombo() {
-    _lastDirection = "NONE";
-    _lastPressTime = null;
-  }
-
-  @override
-  void dispose() {
-    VolumeController.instance.removeListener();
-    super.dispose();
-  }
-
-  Future<LatLng> _getPosizione() async {
-    final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    return LatLng(pos.latitude, pos.longitude);
-  }
-
-  Future<void> _inviaSegnalazione() async {
-    final posizione = await _getPosizione();
-    MappaPage.globalKey.currentState?.aggiungiMarker(posizione);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📍 Segnalazione piazzata!'),
-        backgroundColor: Colors.green,
-        duration: Duration(milliseconds: 1500),
-      ),
-    );
-  }
-
-  // Pulsante di test combinazione (solo per debug su emulator)
-  void _testCombo() {
-    _analyzeSequence(_previousVolume + 0.1); // simula volume UP
-    Future.delayed(const Duration(milliseconds: 200), () {
-      _analyzeSequence(_previousVolume - 0.1); // simula volume DOWN
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      setState(() {
+        _mostraNotifica = false;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Mappa senza const, altrimenti errore
-          MappaPage(key: MappaPage.globalKey),
+          // MAPPA SOTTO
+          if (_ultimaPosizione != null)
+            FlutterMap(
+              options: MapOptions(
+                center: _ultimaPosizione,
+                zoom: 15.0,
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: ['a', 'b', 'c'],
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _ultimaPosizione!,
+                      builder: (ctx) => const Icon(
+                        Icons.location_on,
+                        color: Colors.red,
+                        size: 40,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            const Center(child: CircularProgressIndicator()),
 
-          // Overlay con pulsanti
-          Align(
-            alignment: Alignment.bottomCenter,
+          // NOTIFICA ANIMATA SOPRA MAPPA
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            top: _mostraNotifica ? 50 : -80,
+            left: 20,
+            right: 20,
             child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 12,
-                    offset: Offset(0, -4),
-                  )
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))
                 ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "SEGNALAZIONE VELOCE",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Premi i tasti fisici in sequenza (Su-Giù)\nper confermare senza guardare.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 25),
+              child: const Center(
+                child: Text(
+                  '📍 Segnalazione piazzata!',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
 
-                  // Pulsante ANNULLA
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.black),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
-                      "Annulla segnalazione",
-                      style: TextStyle(color: Colors.black, fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Pulsante CONFERMA MANUALE
-                  ElevatedButton(
-                    onPressed: _inviaSegnalazione,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
-                      "Conferma",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Pulsante TEST combo per emulator
-                  ElevatedButton(
-                    onPressed: _testCombo,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey,
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
-                      "TEST COMBO (Emulatore)",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                ],
+          // PULSANTE SEGNALEZIONE
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: ElevatedButton(
+                onPressed: _mostraSegnalazione,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black87,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text(
+                  "Segnalazione Veloce",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               ),
             ),
           ),
