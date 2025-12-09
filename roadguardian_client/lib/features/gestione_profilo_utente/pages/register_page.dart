@@ -25,7 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final RegExp _emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
   final RegExp _italianPhoneRegExp = RegExp(r'^3\d{9}$');
 
-  void _register() { // Rimosso 'async' perché il mock è sincrono
+  void _register() {
     String nome = nameController.text.trim();
     String cognome = surnameController.text.trim();
     String email = emailController.text.trim();
@@ -33,25 +33,21 @@ class _RegisterPageState extends State<RegisterPage> {
     String confirmPassword = confirmPasswordController.text;
     String phone = phoneController.text.trim();
 
-    // Validazioni
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le password non corrispondono')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Le password non corrispondono')));
       return;
     }
 
     if (!_emailRegExp.hasMatch(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Inserisci un indirizzo email valido')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Inserisci un indirizzo email valido')));
       return;
     }
 
     if (phone.isNotEmpty && !_italianPhoneRegExp.hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Numero di telefono non valido (es. 3331234567)')),
-      );
+          const SnackBar(content: Text('Numero di telefono non valido (es. 3331234567)')));
       return;
     }
 
@@ -66,9 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
       numeroTelefono: phone.isEmpty ? null : phone,
     );
 
-    // --- CORREZIONE: Rimosso 'await' ---
     _service.registerUser(newUser);
-
     setState(() => loading = false);
 
     // Login automatico dopo registrazione
@@ -97,7 +91,8 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              const Text("REGISTRAZIONE", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text("REGISTRAZIONE",
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -108,36 +103,48 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Column(
                   children: [
                     TextField(
+                      key: const Key('register_nome'),
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: "Nome", border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: "Nome", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      key: const Key('register_cognome'),
                       controller: surnameController,
-                      decoration: const InputDecoration(labelText: "Cognome", border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: "Cognome", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      key: const Key('register_email'),
                       controller: emailController,
-                      decoration: const InputDecoration(labelText: "Email", border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: "Email", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      key: const Key('register_telefono'),
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(labelText: "Telefono (opzionale)", border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: "Telefono (opzionale)", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      key: const Key('register_password'),
                       controller: passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: "Password", border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: "Password", border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      key: const Key('register_confirm_password'),
                       controller: confirmPasswordController,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: "Conferma Password", border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                          labelText: "Conferma Password", border: OutlineInputBorder()),
                     ),
                   ],
                 ),
@@ -150,13 +157,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: loading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape:
+                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           "REGISTRATI",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
                         ),
                 ),
               ),
@@ -168,11 +179,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: _goToLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape:
+                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text(
                     "TORNA AL LOGIN",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),
               ),
