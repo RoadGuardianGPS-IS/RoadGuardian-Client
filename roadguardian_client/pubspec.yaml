@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.1
+  sdk: ">=3.10.1 <4.0.0"
 
 dependencies:
   flutter:
@@ -17,6 +17,12 @@ dependencies:
   # Flutter Map (OpenStreetMap)
   flutter_map: ^4.0.0
   latlong2: ^0.8.1
+
+  # Volume Controller compatibile Dart 3.x
+  volume_controller: ^3.4.0
+
+  # Per ottenere la posizione GPS
+  geolocator: ^10.1.0
 
 dev_dependencies:
   flutter_test:

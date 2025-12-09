@@ -11,6 +11,8 @@ import '../../gestione_profilo_utente/pages/login_page.dart';
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
 
+  static final GlobalKey<_MappaPageState> globalKey = GlobalKey<_MappaPageState>();
+
   @override
   State<MappaPage> createState() => _MappaPageState();
 }
@@ -24,6 +26,8 @@ class _MappaPageState extends State<MappaPage> {
 
   List<SegnalazioneModel> _segnalazioni = [];
   final MockSegnalazioneService _segnalazioneService = MockSegnalazioneService();
+
+  final List<Marker> _extraMarkers = [];
 
   @override
   void initState() {
@@ -44,7 +48,7 @@ class _MappaPageState extends State<MappaPage> {
           napoliLatLng,
           LatLng(segnalazione.latitude, segnalazione.longitude),
         );
-        return metri <= 3000; // < 3km
+        return metri <= 3000;
       }).toList();
 
       if (mounted) {
@@ -193,6 +197,34 @@ class _MappaPageState extends State<MappaPage> {
     );
   }
 
+  void aggiungiMarker(LatLng posizione) {
+    setState(() {
+      _extraMarkers.add(
+        Marker(
+          point: posizione,
+          width: 40,
+          height: 40,
+          builder: (ctx) => const Icon(Icons.location_on, color: Colors.red, size: 40),
+        ),
+      );
+    });
+  }
+
+  // Funzione per test combo sul pulsante emulator
+  void testCombo() {
+    // Simula aggiunta marker direttamente
+    final testPos = LatLng(_posizioneUtente.latitude + 0.0005, _posizioneUtente.longitude + 0.0005);
+    aggiungiMarker(testPos);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ Segnalazione combo test piazzata!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -210,7 +242,6 @@ class _MappaPageState extends State<MappaPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.roadguardian',
               ),
-              // MARKER UTENTE BLU
               MarkerLayer(
                 markers: [
                   Marker(
@@ -234,7 +265,6 @@ class _MappaPageState extends State<MappaPage> {
                   ),
                 ],
               ),
-              // MARKER ROSSI
               MarkerLayer(
                 markers: _segnalazioni.map((s) {
                   return Marker(
@@ -261,10 +291,7 @@ class _MappaPageState extends State<MappaPage> {
                             decoration: BoxDecoration(
                               color: Colors.red.withAlpha((0.2 * 255).toInt()),
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.red,
-                                width: 2.0,
-                              ),
+                              border: Border.all(color: Colors.red, width: 2),
                             ),
                           ),
                           Container(
@@ -287,18 +314,16 @@ class _MappaPageState extends State<MappaPage> {
                   );
                 }).toList(),
               ),
+              MarkerLayer(markers: _extraMarkers),
             ],
           ),
-          // TASTI FLOTTANTI
           Positioned(
             bottom: 20,
             right: 10,
             child: Column(
               children: [
-                // PULSANTE "OMINO" -> LOGIN PAGE
                 FloatingActionButton(
                   heroTag: 'login_page',
-                  mini: false,
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
@@ -309,28 +334,20 @@ class _MappaPageState extends State<MappaPage> {
                   child: const Icon(Icons.person, size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
-
-                // PULSANTE POSIZIONE UTENTE
                 FloatingActionButton(
                   heroTag: 'posizione_utente',
-                  mini: false,
                   onPressed: _vaiAllaPosizioneUtente,
                   backgroundColor: Colors.blue,
                   child: const Icon(Icons.my_location, size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
-
-                // PULSANTE SIMULA INCIDENTE
                 FloatingActionButton(
                   heroTag: 'fake_incidente',
-                  mini: false,
                   onPressed: _simulaIncidente,
                   backgroundColor: Colors.red,
                   child: const Icon(Icons.warning, size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
-
-                // ZOOM IN
                 FloatingActionButton(
                   heroTag: 'zoom_in',
                   mini: true,
@@ -339,8 +356,6 @@ class _MappaPageState extends State<MappaPage> {
                   child: const Icon(Icons.add, color: Colors.black),
                 ),
                 const SizedBox(height: 8),
-
-                // ZOOM OUT
                 FloatingActionButton(
                   heroTag: 'zoom_out',
                   mini: true,
@@ -348,6 +363,16 @@ class _MappaPageState extends State<MappaPage> {
                   backgroundColor: Colors.white,
                   child: const Icon(Icons.remove, color: Colors.black),
                 ),
+                const SizedBox(height: 12),
+                // BOTTONE TEST COMBO EMULATORE
+                FloatingActionButton(
+                  heroTag: 'test_combo',
+                  mini: false,
+                  onPressed: testCombo,
+                  backgroundColor: Colors.blueGrey,
+                  child: const Icon(Icons.vibration, size: 28, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
               ],
             ),
           ),
