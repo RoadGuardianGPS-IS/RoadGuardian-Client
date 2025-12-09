@@ -14,7 +14,8 @@ class SegnalazioneManualePage extends StatefulWidget {
   });
 
   @override
-  State<SegnalazioneManualePage> createState() => _SegnalazioneManualePageState();
+  State<SegnalazioneManualePage> createState() =>
+      _SegnalazioneManualePageState();
 }
 
 class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
@@ -83,7 +84,10 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     return Scaffold(
       backgroundColor: customBackground,
       appBar: AppBar(
-        title: const Text("SEGNALAZIONE MANUALE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          "SEGNALAZIONE MANUALE",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -98,7 +102,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // --- SEZIONE 1: FOTO ---
                     Center(
                       child: GestureDetector(
@@ -117,7 +120,8 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                             border: Border.all(color: Colors.grey.shade300),
                             image: _fotoCaricata
                                 ? const DecorationImage(
-                                    image: NetworkImage("https://via.placeholder.com/600x400"), // Placeholder
+                                    image: NetworkImage(
+                                        "https://via.placeholder.com/600x400"),
                                     fit: BoxFit.cover,
                                   )
                                 : null,
@@ -127,9 +131,13 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                               : Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.camera_alt, size: 50, color: customPurple),
+                                    Icon(Icons.camera_alt,
+                                        size: 50, color: customPurple),
                                     const SizedBox(height: 10),
-                                    const Text("Tocca per aggiungere foto", style: TextStyle(color: Colors.grey)),
+                                    const Text(
+                                      "Tocca per aggiungere foto",
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
                                   ],
                                 ),
                         ),
@@ -147,11 +155,10 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
                           // Dropdown Categoria
                           DropdownButtonFormField<String>(
                             decoration: _inputDecoration("Tipo di Incidente"),
-                            value: _categoriaSelezionata,
+                            initialValue: _categoriaSelezionata,
                             items: _categorieRAD.map((String categoria) {
                               return DropdownMenuItem<String>(
                                 value: categoria,
@@ -171,7 +178,9 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                             controller: _titoloController,
                             decoration: _inputDecoration("Titolo breve"),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Inserisci un titolo';
+                              if (value == null || value.isEmpty) {
+                                return 'Inserisci un titolo';
+                              }
                               return null;
                             },
                           ),
@@ -181,13 +190,15 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                           TextFormField(
                             controller: _descrizioneController,
                             maxLines: 4,
-                            decoration: _inputDecoration("Descrizione dettagliata"),
+                            decoration:
+                                _inputDecoration("Descrizione dettagliata"),
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Descrivi l\'accaduto';
+                              if (value == null || value.isEmpty) {
+                                return 'Descrivi l\'accaduto';
+                              }
                               return null;
                             },
                           ),
-
                           const SizedBox(height: 16),
 
                           // Coordinate (Sola lettura)
@@ -200,20 +211,28 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.location_on, color: Colors.redAccent),
+                                const Icon(Icons.location_on,
+                                    color: Colors.redAccent),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Text("Posizione rilevata:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                      const Text(
+                                        "Posizione rilevata:",
+                                        style: TextStyle(
+                                            fontSize: 12, color: Colors.grey),
+                                      ),
                                       Text(
                                         widget.indirizzoStimato,
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       Text(
                                         "${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}",
-                                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                        style: const TextStyle(
+                                            fontSize: 12, color: Colors.grey),
                                       ),
                                     ],
                                   ),
@@ -224,7 +243,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 40),
 
                     // --- BOTTONE INVIO ---
@@ -235,11 +253,15 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                         onPressed: _inviaSegnalazione,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: customPurple,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                         child: const Text(
                           "CONFERMA SEGNALAZIONE",
-                          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),

@@ -3,7 +3,7 @@ import '../models/user_model.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
 import 'area_personale_page.dart';
 import 'register_page.dart';
-// import '../../gestione_mappa/pages/visualizzazione_mappa.dart'; // COMMENTATO
+import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,8 +22,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    // Se c'è già un utente loggato, naviga direttamente ad AreaPersonale
     if (_service.currentUser != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -37,11 +39,14 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => loading = true);
     UserModel? user = await _service.fetchUserByEmail(emailController.text);
 
+    if (!mounted) return; // importante: evita warning use_build_context_synchronously
+
     if (user == null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Utente non trovato')));
     } else if (passwordController.text == user.password) {
       _service.currentUser = user;
+      // Naviga ad AreaPersonalePage in sicurezza
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -52,10 +57,12 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Password errata')));
     }
+    if (!mounted) return;
     setState(() => loading = false);
   }
 
   void _goToRegister() {
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const RegisterPage()),
@@ -63,9 +70,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _goToMappa() {
-    // Navigazione disabilitata per mancanza file
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Mappa non disponibile in questo branch")),
+    if (!mounted) return;
+    // Naviga a MappaPage
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MappaPage()),
     );
   }
 

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:roadguardian_client/features/gestione_mappa/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
 import 'package:roadguardian_client/features/gestione_mappa/pages/dettaglio_segnalazione_page.dart';
+import '../../gestione_profilo_utente/pages/login_page.dart';
 
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
@@ -124,12 +125,7 @@ class _MappaPageState extends State<MappaPage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(
-                      red: 0,
-                      green: 0,
-                      blue: 0,
-                      alpha: 0.3 * 255,
-                    ),
+                    color: Colors.black.withAlpha((0.3 * 255).toInt()),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -214,7 +210,6 @@ class _MappaPageState extends State<MappaPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.roadguardian',
               ),
-
               // MARKER UTENTE BLU
               MarkerLayer(
                 markers: [
@@ -239,7 +234,6 @@ class _MappaPageState extends State<MappaPage> {
                   ),
                 ],
               ),
-
               // MARKER ROSSI
               MarkerLayer(
                 markers: _segnalazioni.map((s) {
@@ -265,12 +259,7 @@ class _MappaPageState extends State<MappaPage> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: Colors.red.withValues(
-                                red: 255,
-                                green: 0,
-                                blue: 0,
-                                alpha: 0.2 * 255,
-                              ),
+                              color: Colors.red.withAlpha((0.2 * 255).toInt()),
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: Colors.red,
@@ -300,13 +289,28 @@ class _MappaPageState extends State<MappaPage> {
               ),
             ],
           ),
-
           // TASTI FLOTTANTI
           Positioned(
             bottom: 20,
             right: 10,
             child: Column(
               children: [
+                // PULSANTE "OMINO" -> LOGIN PAGE
+                FloatingActionButton(
+                  heroTag: 'login_page',
+                  mini: false,
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                    );
+                  },
+                  backgroundColor: Colors.purple,
+                  child: const Icon(Icons.person, size: 28, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+
+                // PULSANTE POSIZIONE UTENTE
                 FloatingActionButton(
                   heroTag: 'posizione_utente',
                   mini: false,
@@ -315,6 +319,8 @@ class _MappaPageState extends State<MappaPage> {
                   child: const Icon(Icons.my_location, size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
+
+                // PULSANTE SIMULA INCIDENTE
                 FloatingActionButton(
                   heroTag: 'fake_incidente',
                   mini: false,
@@ -323,6 +329,8 @@ class _MappaPageState extends State<MappaPage> {
                   child: const Icon(Icons.warning, size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
+
+                // ZOOM IN
                 FloatingActionButton(
                   heroTag: 'zoom_in',
                   mini: true,
@@ -331,6 +339,8 @@ class _MappaPageState extends State<MappaPage> {
                   child: const Icon(Icons.add, color: Colors.black),
                 ),
                 const SizedBox(height: 8),
+
+                // ZOOM OUT
                 FloatingActionButton(
                   heroTag: 'zoom_out',
                   mini: true,
