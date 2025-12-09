@@ -124,7 +124,12 @@ class _MappaPageState extends State<MappaPage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(
+                      red: 0,
+                      green: 0,
+                      blue: 0,
+                      alpha: 0.3 * 255,
+                    ),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -167,9 +172,7 @@ class _MappaPageState extends State<MappaPage> {
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.black,
                       side: const BorderSide(color: Colors.grey),
@@ -212,7 +215,7 @@ class _MappaPageState extends State<MappaPage> {
                 userAgentPackageName: 'com.example.roadguardian',
               ),
 
-              // MARKER UTENTE BLU (disegnato PRIMO)
+              // MARKER UTENTE BLU
               MarkerLayer(
                 markers: [
                   Marker(
@@ -237,7 +240,7 @@ class _MappaPageState extends State<MappaPage> {
                 ],
               ),
 
-              // MARKER ROSSI TAPPABILI SOPRA
+              // MARKER ROSSI
               MarkerLayer(
                 markers: _segnalazioni.map((s) {
                   return Marker(
@@ -262,9 +265,17 @@ class _MappaPageState extends State<MappaPage> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.2),
+                              color: Colors.red.withValues(
+                                red: 255,
+                                green: 0,
+                                blue: 0,
+                                alpha: 0.2 * 255,
+                              ),
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.red, width: 2),
+                              border: Border.all(
+                                color: Colors.red,
+                                width: 2.0,
+                              ),
                             ),
                           ),
                           Container(
@@ -275,7 +286,11 @@ class _MappaPageState extends State<MappaPage> {
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
                             ),
-                            child: const Icon(Icons.priority_high, color: Colors.white, size: 24),
+                            child: const Icon(
+                              Icons.priority_high,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                         ],
                       ),
