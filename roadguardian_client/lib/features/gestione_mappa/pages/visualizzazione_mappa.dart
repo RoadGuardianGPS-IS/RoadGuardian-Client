@@ -87,19 +87,16 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-  // Movimento visivo verso il primo incidente del mock (solo effetto visivo)
   void _simulaIncidente() async {
     if (_segnalazioni.isEmpty) return;
 
     final SegnalazioneModel incidente = _segnalazioni.first;
     final LatLng centroIncidente = LatLng(incidente.latitude, incidente.longitude);
 
-    // distanza totale lat/lng
     final double latDiff = centroIncidente.latitude - _posizioneUtente.latitude;
     final double lngDiff = centroIncidente.longitude - _posizioneUtente.longitude;
 
-    // calcoliamo un fattore per fermarsi vicino al bordo rosso (non al centro)
-    const double distanzaPerc = 1.0; // 85% verso il centro
+    const double distanzaPerc = 1.0;
     final double latStep = latDiff * distanzaPerc / 100;
     final double lngStep = lngDiff * distanzaPerc / 100;
 
@@ -120,54 +117,91 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   void _mostraPopup(SegnalazioneModel incidente) {
-    showModalBottomSheet(
+    showGeneralDialog(
       context: context,
-      isDismissible: false,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.warning, color: Colors.red, size: 48),
-              const SizedBox(height: 12),
-              Text(
-                "Incidente rilevato vicino a ${incidente.titolo}!",
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+      barrierDismissible: false,
+      barrierLabel: "Incidente",
+      pageBuilder: (context, animation1, animation2) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              margin: const EdgeInsets.only(top: 50, left: 16, right: 16),
+              padding: const EdgeInsets.all(20),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                "Traffico bloccato nelle vicinanze.\nVuoi visualizzare le linee guida?",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DettaglioSegnalazionePage(
-                        segnalazioneId: incidente.id,
-                      ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.warning, color: Colors.red, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Incidente rilevato",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Vuoi visualizzare le linee guida?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 25),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Chiude popup
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DettaglioSegnalazionePage(
+                            segnalazioneId: incidente.id,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                ),
-                child: const Text("Vai alle linee guida"),
+                    child: const Text("Vai alle linee guida"),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Chiude popup senza navigare
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.grey),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    ),
+                    child: const Text("No"),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
+      transitionBuilder: (context, animation1, animation2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero)
+              .animate(animation1),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 300),
     );
   }
 
@@ -189,33 +223,45 @@ class _MappaPageState extends State<MappaPage> {
                 userAgentPackageName: 'com.example.roadguardian',
               ),
 
-              // MARKER SEGNALAZIONI ROSSE
+              // MARKER ROSSI CON ONTAP DIRETTO
               MarkerLayer(
                 markers: _segnalazioni.map((s) {
                   return Marker(
                     point: LatLng(s.latitude, s.longitude),
                     width: 40,
                     height: 40,
-                    builder: (context) => Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          )
-                        ],
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        // Diretto alla linea guida senza popup
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DettaglioSegnalazionePage(
+                              segnalazioneId: s.id,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            )
+                          ],
+                        ),
+                        child: const Icon(Icons.priority_high, color: Colors.white, size: 24),
                       ),
-                      child: const Icon(Icons.priority_high, color: Colors.white, size: 24),
                     ),
                   );
                 }).toList(),
               ),
 
-              // CERCHIO ROSSO APPROSSIMATO
               CircleLayer(
                 circles: _segnalazioni.map((s) {
                   return CircleMarker(
