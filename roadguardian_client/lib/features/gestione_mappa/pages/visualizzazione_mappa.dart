@@ -3,10 +3,17 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:async';
 
-import 'package:roadguardian_client/features/gestione_mappa/models/segnalazione_model.dart';
-import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
-import 'package:roadguardian_client/features/gestione_mappa/pages/dettaglio_segnalazione_page.dart';
+// --- IMPORT PAGINE E MODELLI (Percorsi Relativi) ---
+import '../../gestione_segnalazione/models/segnalazione_model.dart';
+import '../../gestione_segnalazione/pages/dettaglio_segnalazione_page.dart';
+import '../../gestione_segnalazione/pages/segnalazione_manuale_page.dart';
+
+// Import Login
 import '../../gestione_profilo_utente/pages/login_page.dart';
+
+// Import Service (Assumendo che sia rimasto in services/api/)
+// Se ti da errore su questo, prova a cambiare con il percorso relativo corretto
+import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
 
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
@@ -78,6 +85,21 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
+  // --- CORREZIONE CRUCIALE QUI SOTTO ---
+  // Abbiamo rimosso 'const' e passato latitudine e longitudine
+  // perché l'errore diceva che erano obbligatori.
+  void _vaiASegnalazioneManuale() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SegnalazioneManualePage(
+          latitude: _posizioneUtente.latitude,
+          longitude: _posizioneUtente.longitude,
+        ),
+      ),
+    );
+  }
+
   void _simulaIncidente() async {
     if (_segnalazioni.isEmpty) return;
     final SegnalazioneModel incidente = _segnalazioni.first;
@@ -92,13 +114,15 @@ class _MappaPageState extends State<MappaPage> {
 
     for (int i = 0; i < 100; i++) {
       await Future.delayed(const Duration(milliseconds: 40), () {
-        setState(() {
-          _posizioneUtente = LatLng(
-            _posizioneUtente.latitude + latStep,
-            _posizioneUtente.longitude + lngStep,
-          );
-          _mapController.move(_posizioneUtente, 16);
-        });
+        if (mounted) {
+           setState(() {
+            _posizioneUtente = LatLng(
+              _posizioneUtente.latitude + latStep,
+              _posizioneUtente.longitude + lngStep,
+            );
+            _mapController.move(_posizioneUtente, 16);
+          });
+        }
       });
     }
 
@@ -295,7 +319,7 @@ class _MappaPageState extends State<MappaPage> {
             right: 10,
             child: Column(
               children: [
-                // PULSANTE "OMINO" -> LOGIN PAGE
+                // PULSANTE LOGIN
                 FloatingActionButton(
                   heroTag: 'login_page',
                   mini: false,
@@ -307,6 +331,16 @@ class _MappaPageState extends State<MappaPage> {
                   },
                   backgroundColor: Colors.purple,
                   child: const Icon(Icons.person, size: 28, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+
+                // PULSANTE SEGNALAZIONE MANUALE
+                FloatingActionButton(
+                  heroTag: 'segnalazione_manuale',
+                  mini: false,
+                  onPressed: _vaiASegnalazioneManuale,
+                  backgroundColor: Colors.orange,
+                  child: const Icon(Icons.add_alert, size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
 
