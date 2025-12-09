@@ -55,7 +55,10 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
     return Scaffold(
       backgroundColor: customBackground,
       appBar: AppBar(
-        title: const Text("DETTAGLIO", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          "DETTAGLIO",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -74,7 +77,8 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                   ? Image.network(
                       _segnalazione!.immagineUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (c, o, s) => const Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                      errorBuilder: (c, o, s) =>
+                          const Icon(Icons.broken_image, size: 50, color: Colors.grey),
                     )
                   : const Icon(Icons.map, size: 80, color: Colors.grey),
             ),
@@ -102,7 +106,11 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                     // Titolo
                     Text(
                       _segnalazione!.titolo.toUpperCase(),
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: customPurple),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: customPurple,
+                      ),
                     ),
                     const SizedBox(height: 5),
 
@@ -135,7 +143,8 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                         Expanded(
                           child: Text(
                             _segnalazione!.indirizzo,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w500),
                           ),
                         ),
                       ],
@@ -144,11 +153,14 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                     const SizedBox(height: 20),
 
                     // Descrizione
-                    const Text("Descrizione", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Text("Descrizione",
+                        style:
+                            TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 5),
                     Text(
                       _segnalazione!.descrizione,
-                      style: const TextStyle(fontSize: 15, color: Colors.black87, height: 1.5),
+                      style: const TextStyle(
+                          fontSize: 15, color: Colors.black87, height: 1.5),
                     ),
 
                     const SizedBox(height: 30),
@@ -167,25 +179,37 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.info_outline, color: Color.fromARGB(255, 0, 0, 180)),
+                                Icon(Icons.info_outline,
+                                    color: Color.fromARGB(255, 0, 0, 180)),
                                 const SizedBox(width: 10),
                                 const Text(
                                   "Linee Guida di Sicurezza",
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.black87),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 10),
-                            ..._segnalazione!.lineeGuida.map((consiglio) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text("• ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                      Expanded(child: Text(consiglio, style: const TextStyle(fontSize: 14))),
-                                    ],
-                                  ),
-                                )),
+                            ..._segnalazione!.lineeGuida.map(
+                              (consiglio) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text("• ",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold)),
+                                    Expanded(
+                                        child: Text(consiglio,
+                                            style:
+                                                const TextStyle(fontSize: 14))),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -203,7 +227,8 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: customPurple,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     )
@@ -217,11 +242,17 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
     );
   }
 
+  // BANNER COLOR CORRETTO
   Widget _buildBadge(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(color.red, color.green, color.blue, 0.1),
+        color: Color.fromRGBO(
+          (color.r * 255.0).round().clamp(0, 255),
+          (color.g * 255.0).round().clamp(0, 255),
+          (color.b * 255.0).round().clamp(0, 255),
+          0.1,
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color),
       ),
