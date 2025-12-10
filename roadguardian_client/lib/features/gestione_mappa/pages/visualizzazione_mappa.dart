@@ -79,9 +79,38 @@ class _MappaPageState extends State<MappaPage> {
       _extraMarkers.add(
         Marker(
           point: posizione,
-          width: 40,
-          height: 40,
-          builder: (ctx) => const Icon(Icons.location_on, color: Colors.red, size: 40),
+          width: 100,
+          height: 100,
+          builder: (ctx) => Stack(
+            alignment: Alignment.center,
+            children: [
+              // Alone rosso
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.red.withAlpha((0.2 * 255).toInt()),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.red, width: 2),
+                ),
+              ),
+              // Cerchio centrale
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(
+                  Icons.priority_high,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     });
@@ -134,6 +163,7 @@ class _MappaPageState extends State<MappaPage> {
     final double latDiff = centroIncidente.latitude - _posizioneUtente.latitude;
     final double lngDiff = centroIncidente.longitude - _posizioneUtente.longitude;
 
+    // Movimento fluido verso l'incidente
     const double distanzaPerc = 1.0;
     final double latStep = latDiff * distanzaPerc / 100;
     final double lngStep = lngDiff * distanzaPerc / 100;
@@ -153,7 +183,97 @@ class _MappaPageState extends State<MappaPage> {
     }
 
     if (!mounted) return;
-    // Qui puoi richiamare eventuale popup incidente
+    // --- RIPRISTINATA CHIAMATA AL POPUP ---
+    _mostraPopup(incidente);
+  }
+
+  // --- RIPRISTINATA FUNZIONE POPUP ---
+  void _mostraPopup(SegnalazioneModel incidente) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "Incidente",
+      pageBuilder: (context, animation1, animation2) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              margin: const EdgeInsets.only(top: 50, left: 16, right: 16),
+              padding: const EdgeInsets.all(20),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.3 * 255).toInt()),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.warning, color: Colors.red, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Incidente rilevato",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Vuoi visualizzare le linee guida?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 25),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // Naviga al dettaglio
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DettaglioSegnalazionePage(
+                            segnalazioneId: incidente.id,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    ),
+                    child: const Text("Vai alle linee guida"),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.grey),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    ),
+                    child: const Text("No"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation1, animation2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero)
+              .animate(animation1),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 300),
+    );
   }
 
   @override

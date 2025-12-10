@@ -30,12 +30,14 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
         _ultimaPosizione = LatLng(pos.latitude, pos.longitude);
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Errore ottenendo la posizione: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore ottenendo la posizione: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -49,15 +51,20 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
     }
 
     Future.delayed(const Duration(milliseconds: 1500), () {
-      setState(() {
-        _mostraNotifica = false;
-      });
+      if (mounted) {
+        setState(() {
+          _mostraNotifica = false;
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Nuova Segnalazione"),
+      ),
       body: Stack(
         children: [
           // MAPPA SOTTO
@@ -70,16 +77,44 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
               children: [
                 TileLayer(
                   urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  subdomains: ['a', 'b', 'c'],
+                  subdomains: const ['a', 'b', 'c'],
                 ),
                 MarkerLayer(
                   markers: [
+                    // --- NUOVO STILE MARKER (Uniformato) ---
                     Marker(
                       point: _ultimaPosizione!,
-                      builder: (ctx) => const Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                        size: 40,
+                      width: 100,
+                      height: 100,
+                      builder: (ctx) => Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Alone rosso trasparente
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withAlpha((0.2 * 255).toInt()),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.red, width: 2.0),
+                            ),
+                          ),
+                          // Cerchio centrale pieno
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(
+                              Icons.priority_high,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -89,7 +124,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
           else
             const Center(child: CircularProgressIndicator()),
 
-          // NOTIFICA ANIMATA SOPRA MAPPA
+          // NOTIFICA ANIMATA
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
@@ -109,15 +144,13 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
                 child: Text(
                   '📍 Segnalazione piazzata!',
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
           ),
 
-          // PULSANTE SEGNALEZIONE
+          // PULSANTE AZIONE
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -129,7 +162,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
                   minimumSize: const Size(double.infinity, 50),
                 ),
                 child: const Text(
-                  "Segnalazione Veloce",
+                  "CONFERMA SEGNALAZIONE VELOCE",
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),

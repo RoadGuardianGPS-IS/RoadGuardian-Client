@@ -4,7 +4,7 @@ import 'modifica_profilo_page.dart';
 import 'logout_page.dart';
 import 'login_page.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
-
+import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 
 // ---------------- DETTAGLI PROFILO ----------------
 class DettagliProfiloPage extends StatelessWidget {
@@ -337,15 +337,17 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
 
               const SizedBox(height: 12),
 
-              // TORNA ALLA MAPPA
+              // BOTTONE TORNA ALLA MAPPA
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
+                  // --- MODIFICA 2: Navigazione attivata ---
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("Mappa non disponibile in questo branch")),
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MappaPage()),
+                      (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(
