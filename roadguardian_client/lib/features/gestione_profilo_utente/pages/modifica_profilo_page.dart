@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:roadguardian_client/features/gestione_profilo_utente/models/user_model.dart';
+import '../models/user_model.dart'; // Assicurati il path sia corretto
 
 class ModificaProfiloPage extends StatefulWidget {
   final UserModel user;
@@ -22,12 +22,13 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
   @override
   void initState() {
     super.initState();
-    // Inizializzo i controller con i dati dell'utente passato
     _nomeController = TextEditingController(text: widget.user.nome);
     _cognomeController = TextEditingController(text: widget.user.cognome);
     _emailController = TextEditingController(text: widget.user.email);
-    _telefonoController = TextEditingController(text: widget.user.numeroTelefono ?? '');
-    _passwordController = TextEditingController(text: widget.user.password ?? '');
+    _telefonoController =
+        TextEditingController(text: widget.user.numeroTelefono ?? '');
+    _passwordController =
+        TextEditingController(text: widget.user.password ?? '');
   }
 
   @override
@@ -40,6 +41,19 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
     super.dispose();
   }
 
+  void _salvaModifiche() {
+    // Simulazione salvataggio
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Modifiche salvate (Simulazione)")),
+    );
+
+    // Torna indietro dopo un breve delay
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      Navigator.pop(context);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color customBackground = Color(0xFFF0F0F0);
@@ -48,7 +62,8 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
     return Scaffold(
       backgroundColor: customBackground,
       appBar: AppBar(
-        title: const Text("MODIFICA PROFILO", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        title: const Text("MODIFICA PROFILO",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -62,7 +77,9 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16)),
                 child: Column(
                   children: [
                     _buildTextField("Nome", _nomeController),
@@ -71,19 +88,23 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
                     const SizedBox(height: 16),
                     _buildTextField("Email", _emailController, readOnly: true),
                     const SizedBox(height: 16),
-                    _buildTextField("Telefono", _telefonoController, isPhone: true),
+                    _buildTextField("Telefono", _telefonoController,
+                        isPhone: true),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: "Password",
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10)),
                         filled: true,
                         fillColor: Colors.white,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                           ),
                           onPressed: () {
@@ -102,21 +123,17 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // qui puoi integrare la logica di salvataggio reale
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Modifiche salvate (Simulazione)")),
-                    );
-                    // torno indietro alla pagina precedente
-                    Future.delayed(const Duration(milliseconds: 400), () {
-                      if (mounted) Navigator.pop(context);
-                    });
-                  },
+                  onPressed: _salvaModifiche,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: customPurple,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text("SALVA MODIFICHE", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text("SALVA MODIFICHE",
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -126,7 +143,8 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool readOnly = false, bool isPhone = false}) {
+  Widget _buildTextField(String label, TextEditingController controller,
+      {bool readOnly = false, bool isPhone = false}) {
     return TextField(
       controller: controller,
       readOnly: readOnly,

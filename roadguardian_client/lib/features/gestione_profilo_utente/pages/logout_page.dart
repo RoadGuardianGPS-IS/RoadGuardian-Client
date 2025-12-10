@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
-// import '../../gestione_mappa/pages/visualizzazione_mappa.dart'; // COMMENTATO PER IL BRANCH UTENTE
+// Scommentato import mappa
+import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
@@ -8,7 +9,6 @@ class LogoutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color bgGrey = Color(0xFFF0F0F0);
-    const Color buttonPurple = Color(0xFF6561C0);
     const Color buttonGreen = Colors.green;
 
     return Scaffold(
@@ -44,20 +44,36 @@ class LogoutPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Center(
-                  child: Text(
-                    'Sei uscito correttamente',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.check_circle_outline,
+                      color: Colors.green,
+                      size: 60,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Logout effettuato!',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'A presto!',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const Spacer(),
 
-              // Bottone LOGIN -> LoginPage
+              // Bottone VAI AL LOGIN
               SizedBox(
                 width: 320,
                 height: 50,
@@ -70,13 +86,13 @@ class LogoutPage extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: buttonPurple,
+                    backgroundColor: const Color(0xFF6561C0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   child: const Text(
-                    'LOGIN',
+                    'VAI AL LOGIN',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -85,25 +101,18 @@ class LogoutPage extends StatelessWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
 
-              // Bottone TORNA ALLA MAPPA -> Disabilitato temporaneamente
+              // Bottone TORNA ALLA MAPPA -> ATTIVATO
               SizedBox(
                 width: 320,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: De-commentare dopo il merge con il branch MAPPA
-                    /*
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (_) => const MappaPage()),
                       (route) => false,
-                    );
-                    */
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Mappa non disponibile in questo branch")),
                     );
                   },
                   style: ElevatedButton.styleFrom(

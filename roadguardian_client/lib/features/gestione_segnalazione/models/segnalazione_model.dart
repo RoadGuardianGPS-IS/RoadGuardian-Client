@@ -1,6 +1,7 @@
 class SegnalazioneModel {
   final String id;
   final String titolo;
+  final String categoria;
   final String descrizione;
   final String indirizzo;
   final double latitude;
@@ -9,12 +10,12 @@ class SegnalazioneModel {
   final String gravita;
   final String stato;
   final String? immagineUrl;
-
   final List<String> lineeGuida;
 
   SegnalazioneModel({
     required this.id,
     required this.titolo,
+    required this.categoria,
     required this.descrizione,
     required this.indirizzo,
     required this.latitude,
@@ -30,6 +31,7 @@ class SegnalazioneModel {
     return SegnalazioneModel(
       id: json['id'] ?? '',
       titolo: json['titolo'] ?? '',
+      categoria: json['categoria'] ?? 'Altro',
       descrizione: json['descrizione'] ?? '',
       indirizzo: json['indirizzo'] ?? '',
       latitude: (json['latitude'] is String)

@@ -6,6 +6,12 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <geolocator_windows/geolocator_windows.h>
+#include <volume_controller/volume_controller_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  GeolocatorWindowsRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("GeolocatorWindows"));
+  VolumeControllerPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("VolumeControllerPluginCApi"));
 }

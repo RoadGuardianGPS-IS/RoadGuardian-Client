@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'modifica_profilo_page.dart';
-// import '../../gestione_mappa/pages/visualizzazione_mappa.dart'; // COMMENTATO
 import 'logout_page.dart';
 import 'login_page.dart';
 import 'package:roadguardian_client/services/api/mock_profile_service.dart';
+import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 
 // ---------------- DETTAGLI PROFILO ----------------
 class DettagliProfiloPage extends StatelessWidget {
@@ -49,6 +49,7 @@ class DettagliProfiloPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
+
               // Modifica dati
               SizedBox(
                 width: double.infinity,
@@ -56,9 +57,11 @@ class DettagliProfiloPage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => ModificaProfiloPage(user: utente)));
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ModificaProfiloPage(user: utente),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: customPurple,
@@ -74,26 +77,30 @@ class DettagliProfiloPage extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 12),
+
               // CANCELLAZIONE ACCOUNT
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
                   onPressed: () async {
+                    final ctx = context; // SALVA PRIMA DELL'AWAIT
+
                     final bool? conferma = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
+                      context: ctx,
+                      builder: (dialogCtx) => AlertDialog(
                         title: const Text("Conferma cancellazione"),
                         content: const Text(
                             "Stai per cancellare il tuo account. Vuoi proseguire?"),
                         actions: [
                           TextButton(
-                            onPressed: () => Navigator.pop(context, false),
+                            onPressed: () => Navigator.pop(dialogCtx, false),
                             child: const Text("No"),
                           ),
                           TextButton(
-                            onPressed: () => Navigator.pop(context, true),
+                            onPressed: () => Navigator.pop(dialogCtx, true),
                             child: const Text("Conferma"),
                           ),
                         ],
@@ -104,26 +111,12 @@ class DettagliProfiloPage extends StatelessWidget {
                       MockProfileService().deleteUser(utente);
                       MockProfileService().currentUser = null;
 
-                      // Torna al Login invece che alla Mappa
+                      if (!ctx.mounted) return;
+
                       Navigator.pushAndRemoveUntil(
-                        context,
+                        ctx,
                         MaterialPageRoute(builder: (_) => const LoginPage()),
                         (route) => false,
-                      );
-
-                      await Future.delayed(const Duration(milliseconds: 300));
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Account cancellato"),
-                          content: const Text(
-                              "Il tuo account è stato cancellato con successo."),
-                          actions: [
-                            TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("OK"))
-                          ],
-                        ),
                       );
                     }
                   },
@@ -141,15 +134,15 @@ class DettagliProfiloPage extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 12),
+
               // INDIETRO
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                     shape: RoundedRectangleBorder(
@@ -186,7 +179,8 @@ class DettagliProfiloPage extends StatelessWidget {
   }
 }
 
-// ---------------- SEGNALAZIONI (Placeholder) ----------------
+
+// ---------------- SEGNALAZIONI ----------------
 class SegnalazioniPage extends StatelessWidget {
   final String titolo;
   const SegnalazioniPage({super.key, required this.titolo});
@@ -200,14 +194,14 @@ class SegnalazioniPage extends StatelessWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
           foregroundColor: Colors.black),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.assignment_late_outlined,
-                size: 80, color: const Color.fromRGBO(128, 128, 128, 0.5)),
-            const SizedBox(height: 20),
-            const Text("Nessuna segnalazione",
+                size: 80, color: Color.fromARGB(128, 128, 128, 128)),
+            SizedBox(height: 20),
+            Text("Nessuna segnalazione",
                 style: TextStyle(
                     fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey)),
           ],
@@ -216,6 +210,7 @@ class SegnalazioniPage extends StatelessWidget {
     );
   }
 }
+
 
 // ---------------- AREA PERSONALE ----------------
 class AreaPersonalePage extends StatefulWidget {
@@ -270,6 +265,7 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                 ),
               ),
               const SizedBox(height: 40),
+
               Container(
                 decoration: BoxDecoration(
                     color: Colors.white,
@@ -283,10 +279,11 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                       title: "Informazioni personali",
                       onTap: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    DettagliProfiloPage(utente: _utente)));
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DettagliProfiloPage(utente: _utente),
+                          ),
+                        );
                       },
                     ),
                     const Divider(height: 1, indent: 20, endIndent: 20),
@@ -297,25 +294,31 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                       title: "Storico Segnalazioni",
                       onTap: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const SegnalazioniPage(
-                                    titolo: "Storico Segnalazioni")));
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SegnalazioniPage(
+                                titolo: "Storico Segnalazioni"),
+                          ),
+                        );
                       },
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 40),
+
               // LOGOUT
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
                   onPressed: () {
+                    final ctx = context;
                     MockProfileService().currentUser = null;
+
                     Navigator.pushAndRemoveUntil(
-                      context,
+                      ctx,
                       MaterialPageRoute(builder: (_) => const LogoutPage()),
                       (route) => false,
                     );
@@ -331,15 +334,20 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                           fontWeight: FontWeight.bold)),
                 ),
               ),
+
               const SizedBox(height: 12),
-              // TORNA ALLA MAPPA
+
+              // BOTTONE TORNA ALLA MAPPA
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
+                  // --- MODIFICA 2: Navigazione attivata ---
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Mappa non disponibile in questo branch")),
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MappaPage()),
+                      (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(

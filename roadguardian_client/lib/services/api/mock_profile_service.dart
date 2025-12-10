@@ -10,10 +10,12 @@ class MockProfileService {
   // UTENTE LOGGATO (sessione)
   UserModel? currentUser;
 
+  // Registra un nuovo utente
   void registerUser(UserModel user) {
     _users.add(user);
   }
 
+  // Recupera utente per email e password
   Future<UserModel?> fetchUserByEmailAndPassword(String email, String password) async {
     await Future.delayed(const Duration(milliseconds: 500));
     try {
@@ -23,6 +25,7 @@ class MockProfileService {
     }
   }
 
+  // Recupera utente per email
   Future<UserModel?> fetchUserByEmail(String email) async {
     await Future.delayed(const Duration(milliseconds: 500));
     try {
@@ -32,6 +35,7 @@ class MockProfileService {
     }
   }
 
+  // Cancella utente
   void deleteUser(UserModel user) {
     _users.removeWhere((u) => u.id == user.id);
     if (currentUser?.id == user.id) {
@@ -39,6 +43,7 @@ class MockProfileService {
     }
   }
 
+  // Aggiunge un utente di default
   void addDefaultUser() {
     if (_users.isEmpty) {
       _users.add(UserModel(
@@ -52,5 +57,12 @@ class MockProfileService {
     }
   }
 
-  List<UserModel> getAllUsers() => _users;
+  // Pulisce tutti gli utenti (utile per i test)
+  void clearAllUsers() {
+    _users.clear();
+    currentUser = null;
+  }
+
+  // Restituisce lista di utenti (non modificabile)
+  List<UserModel> getAllUsers() => List.unmodifiable(_users);
 }

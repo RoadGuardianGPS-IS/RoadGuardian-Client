@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart'; // Serve per calcolare la distanza
+import 'package:latlong2/latlong.dart';
+import 'dart:async';
 
-// IMPORT RIMOSSI/COMMENTATI PER IL BRANCH MAPPA
-// import 'package:roadguardian_client/features/gestione_profilo_utente/pages/login_page.dart';
-// import 'package:roadguardian_client/features/gestione_profilo_utente/pages/area_personale_page.dart';
-// import 'package:roadguardian_client/services/api/mock_profile_service.dart';
-
-// TUOI IMPORT (Mantenuti perché fanno parte della mappa)
-import 'package:roadguardian_client/features/gestione_mappa/models/segnalazione_model.dart';
+import '../../gestione_profilo_utente/pages/login_page.dart';
+import '../../gestione_segnalazione/pages/segnalazione_manuale_page.dart';
+import '../../gestione_segnalazione/pages/dettaglio_segnalazione_page.dart';
+import '../../gestione_segnalazione/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
-import 'package:roadguardian_client/features/gestione_mappa/pages/dettaglio_segnalazione_page.dart';
 
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
@@ -20,48 +17,39 @@ class MappaPage extends StatefulWidget {
 }
 
 class _MappaPageState extends State<MappaPage> {
-  // POSIZIONE UTENTE (Napoli Centro)
   final LatLng napoliLatLng = LatLng(40.8522, 14.2681);
 
+  late LatLng _posizioneUtente;
   late final MapController _mapController;
   double _currentZoom = 13.0;
 
-  // Lista segnalazioni
   List<SegnalazioneModel> _segnalazioni = [];
   final MockSegnalazioneService _segnalazioneService = MockSegnalazioneService();
+
+  final List<Marker> _extraMarkers = [];
+
+  bool _showSegnalazioneVeloce = false;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
+    _posizioneUtente = napoliLatLng;
     _caricaSegnalazioni();
   }
 
-  // --- LOGICA FILTRO DISTANZA ---
   Future<void> _caricaSegnalazioni() async {
     try {
-      // 1. Scarico TUTTE le segnalazioni dal server
       final tutteLeSegnalazioni = await _segnalazioneService.getSegnalazioniAttive();
-
-      // 2. Preparo il calcolatore di distanze
       const Distance distanceCalculator = Distance();
 
-      // 3. Filtro solo quelle vicine (< 3 km)
-      final segnalazioniVicine = tutteLeSegnalazioni.where((segnalazione) {
-
-        // Calcolo distanza in Metri
+      final segnalazioniVicine = tutteLeSegnalazioni.where((s) {
         final double metri = distanceCalculator.as(
           LengthUnit.Meter,
-          napoliLatLng, // Posizione Utente
-          LatLng(segnalazione.latitude, segnalazione.longitude) // Posizione Incidente
+          napoliLatLng,
+          LatLng(s.latitude, s.longitude),
         );
-
-        // Debug print per vedere in console cosa succede
-        debugPrint("Segnalazione ${segnalazione.titolo} dista: ${metri.toStringAsFixed(0)} metri.");
-
-        // Tengo solo se distanza <= 3000 metri (3km)
         return metri <= 3000;
-
       }).toList();
 
       if (mounted) {
@@ -72,6 +60,78 @@ class _MappaPageState extends State<MappaPage> {
     } catch (e) {
       debugPrint("Errore caricamento segnalazioni: $e");
     }
+  }
+
+  void _vaiASegnalazioneManuale() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SegnalazioneManualePage(
+          latitude: _posizioneUtente.latitude,
+          longitude: _posizioneUtente.longitude,
+        ),
+      ),
+    );
+  }
+
+  void aggiungiMarker(LatLng posizione) {
+    setState(() {
+      _extraMarkers.add(
+        Marker(
+          point: posizione,
+          width: 100,
+          height: 100,
+          builder: (ctx) => Stack(
+            alignment: Alignment.center,
+            children: [
+              // Alone rosso
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.red.withAlpha((0.2 * 255).toInt()),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.red, width: 2),
+                ),
+              ),
+              // Cerchio centrale
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(
+                  Icons.priority_high,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  void _toggleSegnalazioneVeloce() {
+    setState(() {
+      _showSegnalazioneVeloce = !_showSegnalazioneVeloce;
+    });
+  }
+
+  void _confermaSegnalazioneVeloce() {
+    aggiungiMarker(_posizioneUtente);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('📍 Segnalazione piazzata!'),
+        backgroundColor: Colors.green,
+        duration: Duration(milliseconds: 1500),
+      ),
+    );
+    _toggleSegnalazioneVeloce();
   }
 
   void _zoomIn() {
@@ -88,34 +148,132 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-  void _goToUserArea() {
-    // LOGICA MODIFICATA PER IL BRANCH MAPPA:
-    // Non possiamo navigare verso Login/AreaPersonale perché quei file
-    // non esistono (o non dovrebbero esistere) in questo branch.
+  void _vaiAllaPosizioneUtente() {
+    setState(() {
+      _posizioneUtente = napoliLatLng;
+      _mapController.move(_posizioneUtente, 16);
+    });
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Gestione Utente non disponibile in questo branch (Map-Only)"),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  void _simulaIncidente() async {
+    if (_segnalazioni.isEmpty) return;
+    final SegnalazioneModel incidente = _segnalazioni.first;
+    final LatLng centroIncidente = LatLng(incidente.latitude, incidente.longitude);
 
-    /* CODICE ORIGINALE (COMMENTATO)
-    final profileService = MockProfileService();
-    final currentUser = profileService.currentUser;
+    final double latDiff = centroIncidente.latitude - _posizioneUtente.latitude;
+    final double lngDiff = centroIncidente.longitude - _posizioneUtente.longitude;
 
-    if (currentUser != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AreaPersonalePage(user: currentUser)),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
+    // Movimento fluido verso l'incidente
+    const double distanzaPerc = 1.0;
+    final double latStep = latDiff * distanzaPerc / 100;
+    final double lngStep = lngDiff * distanzaPerc / 100;
+
+    for (int i = 0; i < 100; i++) {
+      await Future.delayed(const Duration(milliseconds: 40), () {
+        if (mounted) {
+          setState(() {
+            _posizioneUtente = LatLng(
+              _posizioneUtente.latitude + latStep,
+              _posizioneUtente.longitude + lngStep,
+            );
+            _mapController.move(_posizioneUtente, 16);
+          });
+        }
+      });
     }
-    */
+
+    if (!mounted) return;
+    // --- RIPRISTINATA CHIAMATA AL POPUP ---
+    _mostraPopup(incidente);
+  }
+
+  // --- RIPRISTINATA FUNZIONE POPUP ---
+  void _mostraPopup(SegnalazioneModel incidente) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "Incidente",
+      pageBuilder: (context, animation1, animation2) {
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              margin: const EdgeInsets.only(top: 50, left: 16, right: 16),
+              padding: const EdgeInsets.all(20),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.3 * 255).toInt()),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.warning, color: Colors.red, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Incidente rilevato",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Vuoi visualizzare le linee guida?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 25),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // Naviga al dettaglio
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DettaglioSegnalazionePage(
+                            segnalazioneId: incidente.id,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    ),
+                    child: const Text("Vai alle linee guida"),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.grey),
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    ),
+                    child: const Text("No"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation1, animation2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero)
+              .animate(animation1),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 300),
+    );
   }
 
   @override
@@ -123,10 +281,11 @@ class _MappaPageState extends State<MappaPage> {
     return Scaffold(
       body: Stack(
         children: [
+          // Mappa sotto
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              center: napoliLatLng,
+              center: _posizioneUtente,
               zoom: _currentZoom,
               interactiveFlags: InteractiveFlag.all,
             ),
@@ -135,59 +294,15 @@ class _MappaPageState extends State<MappaPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.roadguardian',
               ),
-
-              // MARKER SEGNALAZIONI (Solo quelle filtrate appariranno qui)
-              MarkerLayer(
-                markers: _segnalazioni.map((segnalazione) {
-                  return Marker(
-                    point: LatLng(segnalazione.latitude, segnalazione.longitude),
-                    width: 40,
-                    height: 40,
-                    builder: (context) => GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DettaglioSegnalazionePage(
-                              segnalazioneId: segnalazione.id,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            )
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.priority_high,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-
-              // MARKER UTENTE (Blu)
               MarkerLayer(
                 markers: [
                   Marker(
-                    point: napoliLatLng,
+                    point: _posizioneUtente,
                     width: 60,
                     height: 60,
                     builder: (context) => Container(
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.2),
+                        color: Colors.blue.withAlpha(51),
                         shape: BoxShape.circle,
                       ),
                       child: Container(
@@ -202,36 +317,167 @@ class _MappaPageState extends State<MappaPage> {
                   ),
                 ],
               ),
+              MarkerLayer(
+                markers: _segnalazioni.map((s) {
+                  return Marker(
+                    point: LatLng(s.latitude, s.longitude),
+                    width: 100,
+                    height: 100,
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DettaglioSegnalazionePage(
+                              segnalazioneId: s.id,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withAlpha((0.2 * 255).toInt()),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.red, width: 2),
+                            ),
+                          ),
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(
+                              Icons.priority_high,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              MarkerLayer(markers: _extraMarkers),
             ],
           ),
-
-          // Tasti Flottanti
+          // Overlay Segnalazione Veloce
+          if (_showSegnalazioneVeloce)
+            Positioned(
+              top: 50,
+              left: 16,
+              right: 16,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(80),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        "SEGNALAZIONE VELOCE",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: _confermaSegnalazioneVeloce,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          minimumSize: const Size(double.infinity, 40),
+                        ),
+                        child: const Text("Conferma"),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: _toggleSegnalazioneVeloce,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 40),
+                        ),
+                        child: const Text("Annulla"),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          // Pulsanti floating
           Positioned(
             bottom: 20,
             right: 10,
             child: Column(
               children: [
                 FloatingActionButton(
-                  heroTag: 'user_btn',
-                  mini: false,
-                  onPressed: _goToUserArea,
-                  backgroundColor: Colors.deepPurple,
-                  child: const Icon(Icons.person, size: 28, color: Colors.white),
+                  heroTag: 'login_page',
+                  backgroundColor: Colors.purple,
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                    );
+                  },
+                  child: const Icon(Icons.person, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'segnalazione_manuale',
+                  backgroundColor: Colors.orange,
+                  onPressed: _vaiASegnalazioneManuale,
+                  child: const Icon(Icons.add_alert, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'segnalazione_veloce',
+                  backgroundColor: Colors.green,
+                  onPressed: _toggleSegnalazioneVeloce,
+                  child: const Icon(Icons.notifications_active, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'posizione_utente',
+                  backgroundColor: Colors.blue,
+                  onPressed: _vaiAllaPosizioneUtente,
+                  child: const Icon(Icons.my_location, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'fake_incidente',
+                  backgroundColor: Colors.red,
+                  onPressed: _simulaIncidente,
+                  child: const Icon(Icons.warning, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
                   heroTag: 'zoom_in',
                   mini: true,
-                  onPressed: _zoomIn,
                   backgroundColor: Colors.white,
+                  onPressed: _zoomIn,
                   child: const Icon(Icons.add, color: Colors.black),
                 ),
                 const SizedBox(height: 8),
                 FloatingActionButton(
                   heroTag: 'zoom_out',
                   mini: true,
-                  onPressed: _zoomOut,
                   backgroundColor: Colors.white,
+                  onPressed: _zoomOut,
                   child: const Icon(Icons.remove, color: Colors.black),
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:roadguardian_client/features/gestione_mappa/models/segnalazione_model.dart';
+// Importa il model dalla nuova posizione in gestione_segnalazione
+import 'package:roadguardian_client/features/gestione_segnalazione/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
 
 class DettaglioSegnalazionePage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // FOTO INCIDENTE
+            // FOTO
             Container(
               width: double.infinity,
               height: 250,
@@ -90,7 +91,7 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.05),
+                      color: Colors.black.withAlpha(13), // Sostituito con withAlpha (13 è circa il 5% di 255)
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     )
@@ -106,9 +107,16 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                     ),
                     const SizedBox(height: 5),
 
+                    // Categoria
+                    Text(
+                      "Categoria: ${_segnalazione!.categoria}",
+                      style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 5),
+
                     // Data
                     Text(
-                      "${_segnalazione!.dataOra.day}/${_segnalazione!.dataOra.month}/${_segnalazione!.dataOra.year} - ${_segnalazione!.dataOra.hour}:${_segnalazione!.dataOra.minute.toString().padLeft(2, '0')}",
+                      "${_segnalazione!.dataOra.day}/${_segnalazione!.dataOra.month}/${_segnalazione!.dataOra.year} - ${_segnalazione!.dataOra.hour}:${_segnalazione!.dataOra.minute}",
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     const SizedBox(height: 15),
@@ -118,10 +126,7 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                       children: [
                         _buildBadge(_segnalazione!.stato, Colors.blue),
                         const SizedBox(width: 10),
-                        _buildBadge(
-                          _segnalazione!.gravita,
-                          _getColorForSeverity(_segnalazione!.gravita),
-                        ),
+                        _buildBadge(_segnalazione!.gravita, _getColorForSeverity(_segnalazione!.gravita)),
                       ],
                     ),
 
@@ -130,7 +135,7 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                     // Indirizzo
                     Row(
                       children: [
-                        const Icon(Icons.location_on, color: Color.fromARGB(255, 255, 0, 0)),
+                        const Icon(Icons.location_on, color: Colors.redAccent),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -153,21 +158,23 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
 
                     const SizedBox(height: 30),
 
-                    // Linee guida
+                    // Linee Guida
                     if (_segnalazione!.lineeGuida.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Color.fromRGBO(235, 248, 255, 1.0),
+                          color: Colors.blue[50],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Color.fromRGBO(0, 0, 255, 0.3)),
+                          border: Border.all(
+                            color: Colors.blue.withAlpha(77), // Sostituito con withAlpha (77 è circa 0.3 * 255)
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.info_outline, color: Color.fromARGB(255, 0, 0, 180)),
+                                Icon(Icons.info_outline, color: Colors.blue[800]),
                                 const SizedBox(width: 10),
                                 const Text(
                                   "Linee Guida di Sicurezza",
@@ -221,7 +228,8 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(color.red, color.green, color.blue, 0.1),
+        // Sostituito con withAlpha. 25 è circa 0.1 di opacità (0.1 * 255 = 25.5)
+        color: color.withAlpha(25),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color),
       ),
@@ -235,13 +243,13 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
   Color _getColorForSeverity(String gravita) {
     switch (gravita.toLowerCase()) {
       case 'alta':
-        return const Color.fromARGB(255, 255, 0, 0); // rosso
+        return Colors.red;
       case 'media':
-        return const Color.fromARGB(255, 255, 165, 0); // arancione
+        return Colors.orange;
       case 'bassa':
-        return const Color.fromARGB(255, 0, 128, 0); // verde
+        return Colors.green;
       default:
-        return const Color.fromARGB(255, 128, 128, 128); // grigio
+        return Colors.grey;
     }
   }
 }
