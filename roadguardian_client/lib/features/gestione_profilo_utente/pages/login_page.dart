@@ -22,7 +22,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    // Se c'è già un utente loggato, naviga direttamente ad AreaPersonale
     if (_service.currentUser != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -48,21 +47,14 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Qui controlliamo la password (semplificato per mock)
-    // Nel tuo mock sembra che fetchUserByEmail non controlli la psw, lo facciamo qui o usiamo fetchUserByEmailAndPassword
-    // Se usi fetchUserByEmailAndPassword nel mock, usa quello. Altrimenti controllo manuale:
     if (user.password != passwordController.text) {
-       // Nota: Se il mock ritorna user nullo su psw errata, questo check è ridondante ma sicuro.
-       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Password o Utente errati")));
-       setState(() => loading = false);
-       return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Password o Utente errati")));
+      setState(() => loading = false);
+      return;
     }
 
-    // --- CORREZIONE QUI ---
-    // Invece di _service.setCurrentUser(user), assegnamo direttamente:
     _service.currentUser = user;
-    // ----------------------
 
     setState(() => loading = false);
 
@@ -102,21 +94,42 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                // Logo placeholder
-                const Icon(Icons.security, size: 100, color: Colors.purple),
+
+                // --- LOGO MODIFICATO ---
+                // Assicurati che il file esista in: assets/logo/logo_app.png
+                // Se non c'è l'immagine, mostrerà un'icona di fallback pulita.
+                SizedBox(
+                  height: 120,
+                  child: Image.asset(
+                    'assets/logo/logo_app.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback se l'immagine non viene trovata
+                      return const Icon(Icons.security, size: 100, color: Colors.purple);
+                    },
+                  ),
+                ),
+                // -----------------------
+
                 const SizedBox(height: 20),
-                const Text("ROAD GUARDIAN", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87)),
+                const Text("ROAD GUARDIAN",
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87)),
                 const SizedBox(height: 40),
 
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withAlpha(13), blurRadius: 10, offset: const Offset(0, 5))
-                    ]
-                  ),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withAlpha(13),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5))
+                      ]),
                   child: Column(
                     children: [
                       TextField(
@@ -124,7 +137,8 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Email",
                           prefixIcon: const Icon(Icons.email_outlined),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -134,7 +148,8 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Password",
                           prefixIcon: const Icon(Icons.lock_outline),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                       const SizedBox(height: 25),
@@ -145,18 +160,23 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: loading ? null : _login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF6561C0),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           child: loading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text("ACCEDI", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
+                              : const Text("ACCEDI",
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 30),
-
                 SizedBox(
                   width: double.infinity,
                   height: 55,

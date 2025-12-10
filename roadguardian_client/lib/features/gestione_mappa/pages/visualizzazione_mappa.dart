@@ -84,7 +84,6 @@ class _MappaPageState extends State<MappaPage> {
           builder: (ctx) => Stack(
             alignment: Alignment.center,
             children: [
-              // Alone rosso
               Container(
                 width: 80,
                 height: 80,
@@ -94,7 +93,6 @@ class _MappaPageState extends State<MappaPage> {
                   border: Border.all(color: Colors.red, width: 2),
                 ),
               ),
-              // Cerchio centrale
               Container(
                 width: 40,
                 height: 40,
@@ -163,7 +161,6 @@ class _MappaPageState extends State<MappaPage> {
     final double latDiff = centroIncidente.latitude - _posizioneUtente.latitude;
     final double lngDiff = centroIncidente.longitude - _posizioneUtente.longitude;
 
-    // Movimento fluido verso l'incidente
     const double distanzaPerc = 1.0;
     final double latStep = latDiff * distanzaPerc / 100;
     final double lngStep = lngDiff * distanzaPerc / 100;
@@ -183,11 +180,9 @@ class _MappaPageState extends State<MappaPage> {
     }
 
     if (!mounted) return;
-    // --- RIPRISTINATA CHIAMATA AL POPUP ---
     _mostraPopup(incidente);
   }
 
-  // --- RIPRISTINATA FUNZIONE POPUP ---
   void _mostraPopup(SegnalazioneModel incidente) {
     showGeneralDialog(
       context: context,
@@ -222,6 +217,14 @@ class _MappaPageState extends State<MappaPage> {
                     "Incidente rilevato",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                   ),
+                  const SizedBox(height: 8),
+                  // --- TESTO AGGIUNTO ---
+                  const Text(
+                    "Prestare attenzione: pericolo imminente.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.red),
+                  ),
+                  // ---------------------
                   const SizedBox(height: 12),
                   const Text(
                     "Vuoi visualizzare le linee guida?",
@@ -232,7 +235,6 @@ class _MappaPageState extends State<MappaPage> {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      // Naviga al dettaglio
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -281,7 +283,6 @@ class _MappaPageState extends State<MappaPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Mappa sotto
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
@@ -369,7 +370,6 @@ class _MappaPageState extends State<MappaPage> {
               MarkerLayer(markers: _extraMarkers),
             ],
           ),
-          // Overlay Segnalazione Veloce
           if (_showSegnalazioneVeloce)
             Positioned(
               top: 50,
@@ -419,7 +419,6 @@ class _MappaPageState extends State<MappaPage> {
                 ),
               ),
             ),
-          // Pulsanti floating
           Positioned(
             bottom: 20,
             right: 10,

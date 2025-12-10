@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SegnalazioneManualePage extends StatefulWidget {
-  // Riceviamo le coordinate dalla mappa (essenziali per il backend)
+  // Riceviamo le coordinate dalla mappa
   final double latitude;
   final double longitude;
   final String indirizzoStimato;
@@ -28,7 +28,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
   // Stato
   String? _categoriaSelezionata;
   bool _isLoading = false;
-  bool _fotoCaricata = false;
+  // RIMOSSO STATO FOTO CARICATA
 
   // LE 5 CATEGORIE DA RAD
   final List<String> _categorieRAD = [
@@ -39,44 +39,33 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     "Incendio veicolo"
   ];
 
-  // Colori del tema
   final Color customBackground = const Color(0xFFF0F0F0);
   final Color customPurple = const Color(0xFF6561C0);
 
-  // Simulazione Invio
   Future<void> _inviaSegnalazione() async {
     if (!_formKey.currentState!.validate()) return;
     if (_categoriaSelezionata == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Seleziona il tipo di incidente")),
-      );
+          const SnackBar(content: Text("Seleziona una categoria")));
       return;
     }
 
     setState(() => _isLoading = true);
 
-    // Simulazione attesa rete
+    // Simulazione invio al backend
     await Future.delayed(const Duration(seconds: 2));
 
-    // Log di debug per verificare cosa stiamo inviando
-    debugPrint("--- INVIO SEGNALAZIONE ---");
-    debugPrint("Titolo: ${_titoloController.text}");
-    debugPrint("Categoria: $_categoriaSelezionata");
-    debugPrint("Descrizione: ${_descrizioneController.text}");
-    debugPrint("Lat: ${widget.latitude}, Long: ${widget.longitude}");
-    debugPrint("Foto presente: $_fotoCaricata");
+    if (!mounted) return;
+    setState(() => _isLoading = false);
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Segnalazione inviata con successo!"),
-          backgroundColor: Colors.green,
-        ),
-      );
-      // Chiude la pagina e torna alla mappa
-      Navigator.pop(context);
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Segnalazione inviata con successo!"),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    Navigator.pop(context); // Torna alla mappa
   }
 
   @override
@@ -84,168 +73,87 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     return Scaffold(
       backgroundColor: customBackground,
       appBar: AppBar(
-        title: const Text(
-          "SEGNALAZIONE MANUALE",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        centerTitle: true,
+        title: const Text("NUOVA SEGNALAZIONE"),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.black,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: customPurple))
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24.0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- SEZIONE 1: FOTO ---
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          // Qui andrà la logica ImagePicker
-                          setState(() {
-                            _fotoCaricata = !_fotoCaricata;
-                          });
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade300),
-                            image: _fotoCaricata
-                                ? const DecorationImage(
-                                    image: NetworkImage(
-                                        "https://via.placeholder.com/600x400"),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                          ),
-                          child: _fotoCaricata
-                              ? null
-                              : Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.camera_alt,
-                                        size: 50, color: customPurple),
-                                    const SizedBox(height: 10),
-                                    const Text(
-                                      "Tocca per aggiungere foto",
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // --- SEZIONE 2: FORM DATI ---
+                    // Coordinate (Read Only)
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.withAlpha(50)),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          // Dropdown Categoria
-                          DropdownButtonFormField<String>(
-                            decoration: _inputDecoration("Tipo di Incidente"),
-                            initialValue: _categoriaSelezionata,
-                            items: _categorieRAD.map((String categoria) {
-                              return DropdownMenuItem<String>(
-                                value: categoria,
-                                child: Text(categoria),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              setState(() {
-                                _categoriaSelezionata = newValue;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Titolo
-                          TextFormField(
-                            controller: _titoloController,
-                            decoration: _inputDecoration("Titolo breve"),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Inserisci un titolo';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Descrizione
-                          TextFormField(
-                            controller: _descrizioneController,
-                            maxLines: 4,
-                            decoration:
-                                _inputDecoration("Descrizione dettagliata"),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Descrivi l\'accaduto';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Coordinate (Sola lettura)
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Row(
+                          const Icon(Icons.location_on, color: Colors.blue),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.location_on,
-                                    color: Colors.redAccent),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Posizione rilevata:",
-                                        style: TextStyle(
-                                            fontSize: 12, color: Colors.grey),
-                                      ),
-                                      Text(
-                                        widget.indirizzoStimato,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        "${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}",
-                                        style: const TextStyle(
-                                            fontSize: 12, color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
+                                const Text("Posizione Rilevata",
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey)),
+                                Text(
+                                  "${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 16),
                                 ),
                               ],
                             ),
-                          ),
+                          )
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 25),
 
-                    // --- BOTTONE INVIO ---
+                    // Titolo
+                    TextFormField(
+                      controller: _titoloController,
+                      decoration: _inputDecoration("Titolo (es. Incidente lieve)"),
+                      validator: (value) =>
+                          value!.isEmpty ? "Inserisci un titolo" : null,
+                    ),
+                    const SizedBox(height: 15),
+
+                    // Categoria Dropdown
+                    DropdownButtonFormField<String>(
+                      initialValue: _categoriaSelezionata,
+                      decoration: _inputDecoration("Categoria Incidente"),
+                      items: _categorieRAD.map((cat) {
+                        return DropdownMenuItem(value: cat, child: Text(cat));
+                      }).toList(),
+                      onChanged: (val) =>
+                          setState(() => _categoriaSelezionata = val),
+                    ),
+                    const SizedBox(height: 15),
+
+                    // Descrizione
+                    TextFormField(
+                      controller: _descrizioneController,
+                      maxLines: 4,
+                      decoration:
+                          _inputDecoration("Descrizione dettagliata (opzionale)"),
+                    ),
+                    const SizedBox(height: 25),
+
+                    // --- RIMOSSA SEZIONE FOTO ---
+
+                    const SizedBox(height: 10),
+
+                    // Bottone Conferma
                     SizedBox(
                       width: double.infinity,
                       height: 55,
@@ -272,7 +180,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     );
   }
 
-  // Stile Campi Input (Coerente con RegisterPage)
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
