@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'logout_page.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
-import 'package:roadguardian_client/services/api/profilo_service.dart';
+import 'package:roadguardian_client/services/api/profile_service.dart';
 import '../models/user_model.dart';
 import 'modifica_profilo_page.dart';
 

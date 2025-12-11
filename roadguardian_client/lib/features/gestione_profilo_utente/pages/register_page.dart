@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:roadguardian_client/features/gestione_profilo_utente/models/user_model.dart';
-import 'package:roadguardian_client/services/api/profilo_service.dart';
+import 'package:roadguardian_client/services/api/profile_service.dart';
 import 'package:roadguardian_client/services/api/register_input.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 import 'login_page.dart';

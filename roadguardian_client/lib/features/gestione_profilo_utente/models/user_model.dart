@@ -15,24 +15,25 @@ class UserModel {
     this.password,
   });
 
+  // Parsing JSON dal server
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] ?? '',
-      nome: json['nome'] ?? '',
-      cognome: json['cognome'] ?? '',
+      id: json['_id'] ?? '',
+      nome: json['first_name'] ?? '',
+      cognome: json['last_name'] ?? '',
       email: json['email'] ?? '',
-      numeroTelefono: json['telefono'],
-      password: json['password'] ,
+      numeroTelefono: json['num_tel'],
+      password: json['password'], // probabilmente null dal server
     );
   }
 
+  // Conversione in JSON da inviare al server
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'nome': nome,
-      'cognome': cognome,
+      'first_name': nome,
+      'last_name': cognome,
       'email': email,
-      'telefono': numeroTelefono,
+      'num_tel': numeroTelefono,
       'password': password,
     };
   }

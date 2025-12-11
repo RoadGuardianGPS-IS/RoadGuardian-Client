@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:roadguardian_client/services/api/profilo_service.dart';
+import 'package:roadguardian_client/services/api/profile_service.dart';
 
 class SegnalazioneManualePage extends StatefulWidget {
   // Riceviamo le coordinate dalla mappa (essenziali per il backend)
