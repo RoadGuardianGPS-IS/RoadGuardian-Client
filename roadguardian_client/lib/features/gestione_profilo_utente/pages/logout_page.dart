@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
-// Scommentato import mappa
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
+import 'package:roadguardian_client/services/api/profilo_service.dart';
 
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
@@ -9,6 +9,7 @@ class LogoutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color bgGrey = Color(0xFFF0F0F0);
+    const Color buttonPurple = Color(0xFF6561C0);
     const Color buttonGreen = Colors.green;
 
     return Scaffold(
@@ -44,41 +45,28 @@ class LogoutPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.check_circle_outline,
-                      color: Colors.green,
-                      size: 60,
+                child: const Center(
+                  child: Text(
+                    'Sei uscito correttamente',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Logout effettuato!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'A presto!',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
 
-              const Spacer(),
+              const SizedBox(height: 24),
 
-              // Bottone VAI AL LOGIN
+              // Bottone LOGIN -> LoginPage
               SizedBox(
                 width: 320,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    // Cancella la sessione utente
+                    ProfiloService().currentUser = null;
+
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -86,13 +74,13 @@ class LogoutPage extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6561C0),
+                    backgroundColor: buttonPurple,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   child: const Text(
-                    'VAI AL LOGIN',
+                    'LOGIN',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -101,9 +89,10 @@ class LogoutPage extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 12),
 
-              // Bottone TORNA ALLA MAPPA -> ATTIVATO
+              // Bottone TORNA ALLA MAPPA
               SizedBox(
                 width: 320,
                 height: 50,

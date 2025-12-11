@@ -1,218 +1,11 @@
 import 'package:flutter/material.dart';
+import 'login_page.dart';
+import 'logout_page.dart';
+import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
+import 'package:roadguardian_client/services/api/profilo_service.dart';
 import '../models/user_model.dart';
 import 'modifica_profilo_page.dart';
-import 'logout_page.dart';
-import 'login_page.dart';
-import 'package:roadguardian_client/services/api/mock_profile_service.dart';
-import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 
-// ---------------- DETTAGLI PROFILO ----------------
-class DettagliProfiloPage extends StatelessWidget {
-  final UserModel utente;
-  const DettagliProfiloPage({super.key, required this.utente});
-
-  @override
-  Widget build(BuildContext context) {
-    const Color customPurple = Color(0xFF6561C0);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
-      appBar: AppBar(
-        title: const Text("I TUOI DATI"),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16)),
-                child: Column(
-                  children: [
-                    _buildInfoRow("Nome", utente.nome),
-                    const Divider(),
-                    _buildInfoRow("Cognome", utente.cognome),
-                    const Divider(),
-                    _buildInfoRow("Email", utente.email),
-                    const Divider(),
-                    _buildInfoRow("Telefono", utente.numeroTelefono ?? "-"),
-                    const Divider(),
-                    _buildInfoRow("Password", "••••••••"),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // Modifica dati
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ModificaProfiloPage(user: utente),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: customPurple,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text(
-                    "MODIFICA DATI",
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // CANCELLAZIONE ACCOUNT
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final ctx = context; // SALVA PRIMA DELL'AWAIT
-
-                    final bool? conferma = await showDialog<bool>(
-                      context: ctx,
-                      builder: (dialogCtx) => AlertDialog(
-                        title: const Text("Conferma cancellazione"),
-                        content: const Text(
-                            "Stai per cancellare il tuo account. Vuoi proseguire?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogCtx, false),
-                            child: const Text("No"),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(dialogCtx, true),
-                            child: const Text("Conferma"),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (conferma == true) {
-                      MockProfileService().deleteUser(utente);
-                      MockProfileService().currentUser = null;
-
-                      if (!ctx.mounted) return;
-
-                      Navigator.pushAndRemoveUntil(
-                        ctx,
-                        MaterialPageRoute(builder: (_) => const LoginPage()),
-                        (route) => false,
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text(
-                    "CANCELLAZIONE ACCOUNT",
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // INDIETRO
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text(
-                    "INDIETRO",
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 16)),
-          Text(value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        ],
-      ),
-    );
-  }
-}
-
-
-// ---------------- SEGNALAZIONI ----------------
-class SegnalazioniPage extends StatelessWidget {
-  final String titolo;
-  const SegnalazioniPage({super.key, required this.titolo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
-      appBar: AppBar(
-          title: Text(titolo),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          foregroundColor: Colors.black),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.assignment_late_outlined,
-                size: 80, color: Color.fromARGB(128, 128, 128, 128)),
-            SizedBox(height: 20),
-            Text("Nessuna segnalazione",
-                style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-// ---------------- AREA PERSONALE ----------------
 class AreaPersonalePage extends StatefulWidget {
   final UserModel user;
   const AreaPersonalePage({super.key, required this.user});
@@ -224,6 +17,7 @@ class AreaPersonalePage extends StatefulWidget {
 class _AreaPersonalePageState extends State<AreaPersonalePage> {
   late UserModel _utente;
   bool _isLoading = true;
+  final ProfiloService _service = ProfiloService();
 
   @override
   void initState() {
@@ -315,7 +109,7 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                 child: ElevatedButton(
                   onPressed: () {
                     final ctx = context;
-                    MockProfileService().currentUser = null;
+                    _service.currentUser = null;
 
                     Navigator.pushAndRemoveUntil(
                       ctx,
@@ -342,7 +136,6 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  // --- MODIFICA 2: Navigazione attivata ---
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
                       context,
@@ -380,6 +173,240 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+    );
+  }
+}
+
+// ================= DETTAGLI PROFILO =================
+class DettagliProfiloPage extends StatelessWidget {
+  final UserModel utente;
+  const DettagliProfiloPage({super.key, required this.utente});
+
+  @override
+  Widget build(BuildContext context) {
+    const Color customPurple = Color(0xFF6561C0);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F0F0),
+      appBar: AppBar(
+        title: const Text("I TUOI DATI"),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  children: [
+                    _buildInfoRow("Nome", utente.nome),
+                    const Divider(),
+                    _buildInfoRow("Cognome", utente.cognome),
+                    const Divider(),
+                    _buildInfoRow("Email", utente.email),
+                    const Divider(),
+                    _buildInfoRow("Telefono", utente.numeroTelefono ?? "-"),
+                    const Divider(),
+                    _buildInfoRow("Password", "••••••••"),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // Modifica dati
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ModificaProfiloPage(user: utente),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: customPurple,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    "MODIFICA DATI",
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // CANCELLAZIONE ACCOUNT
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final ctx = context;
+
+                    // Dialog per chiedere la password di conferma
+                    final TextEditingController passwordController = TextEditingController();
+                    final bool? conferma = await showDialog<bool>(
+                      context: ctx,
+                      builder: (dialogCtx) => AlertDialog(
+                        title: const Text("Conferma cancellazione"),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "Stai per cancellare il tuo account. Questa azione non può essere annullata.",
+                              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: passwordController,
+                              obscureText: true,
+                              decoration: const InputDecoration(
+                                labelText: "Inserisci la tua password",
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogCtx, false),
+                            child: const Text("Annulla"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogCtx, true),
+                            child: const Text("Cancella Account"),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (conferma == true && passwordController.text.isNotEmpty) {
+                      try {
+                        final service = ProfiloService();
+                        await service.deleteUser(utente.id, utente.email, passwordController.text);
+
+                        if (!ctx.mounted) return;
+
+                        Navigator.pushAndRemoveUntil(
+                          ctx,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                          (route) => false,
+                        );
+                      } catch (e) {
+                        if (!ctx.mounted) return;
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(content: Text('Errore cancellazione: $e')),
+                        );
+                      }
+                    } else if (conferma == true && passwordController.text.isEmpty) {
+                      if (!ctx.mounted) return;
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(content: Text('Inserisci la password per confermare')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    "CANCELLAZIONE ACCOUNT",
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // INDIETRO
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    "INDIETRO",
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 16)),
+          Text(value,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        ],
+      ),
+    );
+  }
+}
+
+// ================= SEGNALAZIONI =================
+class SegnalazioniPage extends StatelessWidget {
+  final String titolo;
+  const SegnalazioniPage({super.key, required this.titolo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F0F0),
+      appBar: AppBar(
+          title: Text(titolo),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          foregroundColor: Colors.black),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.assignment_late_outlined,
+                size: 80, color: Color.fromARGB(128, 128, 128, 128)),
+            SizedBox(height: 20),
+            Text("Nessuna segnalazione",
+                style: TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey)),
+          ],
+        ),
+      ),
     );
   }
 }

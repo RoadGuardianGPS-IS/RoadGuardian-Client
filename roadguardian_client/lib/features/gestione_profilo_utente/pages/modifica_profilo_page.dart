@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/user_model.dart'; // Assicurati il path sia corretto
+import '../models/user_model.dart';
+import 'package:roadguardian_client/services/api/profilo_service.dart';
 
 class ModificaProfiloPage extends StatefulWidget {
   final UserModel user;
@@ -7,24 +8,25 @@ class ModificaProfiloPage extends StatefulWidget {
   const ModificaProfiloPage({super.key, required this.user});
 
   @override
-  State<ModificaProfiloPage> createState() => ModificaProfiloPageState();
+  State<ModificaProfiloPage> createState() => _ModificaProfiloPageState();
 }
 
-class ModificaProfiloPageState extends State<ModificaProfiloPage> {
+class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
   late TextEditingController _nomeController;
   late TextEditingController _cognomeController;
-  late TextEditingController _emailController;
   late TextEditingController _telefonoController;
   late TextEditingController _passwordController;
 
   bool _obscurePassword = true;
+  bool _loading = false;
+
+  final ProfiloService _service = ProfiloService();
 
   @override
   void initState() {
     super.initState();
     _nomeController = TextEditingController(text: widget.user.nome);
     _cognomeController = TextEditingController(text: widget.user.cognome);
-    _emailController = TextEditingController(text: widget.user.email);
     _telefonoController =
         TextEditingController(text: widget.user.numeroTelefono ?? '');
     _passwordController =
@@ -35,35 +37,59 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
   void dispose() {
     _nomeController.dispose();
     _cognomeController.dispose();
-    _emailController.dispose();
     _telefonoController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _salvaModifiche() {
-    // Simulazione salvataggio
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Modifiche salvate (Simulazione)")),
+  Future<void> _salvaModifiche() async {
+    setState(() => _loading = true);
+
+    UserModel updatedUser = UserModel(
+      id: widget.user.id,
+      nome: _nomeController.text.trim(),
+      cognome: _cognomeController.text.trim(),
+      email: widget.user.email, // Email fissa
+      numeroTelefono: _telefonoController.text.trim().isEmpty
+          ? null
+          : _telefonoController.text.trim(),
+      password: _passwordController.text.trim().isEmpty
+          ? widget.user.password
+          : _passwordController.text.trim(),
     );
 
-    // Torna indietro dopo un breve delay
-    Future.delayed(const Duration(milliseconds: 400), () {
+    try {
+      final result = await _service.updateUser(updatedUser);
+
       if (!mounted) return;
-      Navigator.pop(context);
-    });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profilo aggiornato con successo")),
+      );
+
+      Navigator.pop(context, result);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Errore aggiornamento: $e")),
+      );
+    }
+
+    if (mounted) setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color customBackground = Color(0xFFF0F0F0);
-    const Color customPurple = Color(0xFF6561C0);
+    const Color bgGrey = Color(0xFFF0F0F0);
+    const Color buttonPurple = Color(0xFF6561C0);
 
     return Scaffold(
-      backgroundColor: customBackground,
+      backgroundColor: bgGrey,
       appBar: AppBar(
-        title: const Text("MODIFICA PROFILO",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        title: const Text(
+          "MODIFICA PROFILO",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -78,33 +104,30 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
                     _buildTextField("Nome", _nomeController),
                     const SizedBox(height: 16),
                     _buildTextField("Cognome", _cognomeController),
                     const SizedBox(height: 16),
-                    _buildTextField("Email", _emailController, readOnly: true),
+                    _buildTextField("Email", TextEditingController(text: widget.user.email), readOnly: true),
                     const SizedBox(height: 16),
-                    _buildTextField("Telefono", _telefonoController,
-                        isPhone: true),
+                    _buildTextField("Telefono", _telefonoController, isPhone: true),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: "Password",
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         filled: true,
                         fillColor: Colors.white,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
                             color: Colors.grey,
                           ),
                           onPressed: () {
@@ -123,17 +146,23 @@ class ModificaProfiloPageState extends State<ModificaProfiloPage> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: _salvaModifiche,
+                  onPressed: _loading ? null : _salvaModifiche,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: customPurple,
+                    backgroundColor: buttonPurple,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text("SALVA MODIFICHE",
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
+                  child: _loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "SALVA MODIFICHE",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],

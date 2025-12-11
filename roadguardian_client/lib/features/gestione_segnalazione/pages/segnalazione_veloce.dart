@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:roadguardian_client/services/api/profilo_service.dart';
 
 class SegnalazioneVelocePage extends StatefulWidget {
   final Function(LatLng) aggiungiMarkerCallback;
@@ -15,11 +18,33 @@ class SegnalazioneVelocePage extends StatefulWidget {
 class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
   LatLng? _ultimaPosizione;
   bool _mostraNotifica = false;
+  bool _isLoading = false;
+  final ProfiloService _profiloService = ProfiloService();
+  final String baseUrl = "http://10.0.2.2:8000"; // Indirizzo server per emulatore Android
 
   @override
   void initState() {
     super.initState();
+    _verificaAutenticazione();
     _aggiornaPosizione();
+  }
+
+  void _verificaAutenticazione() {
+    // Verifica se l'utente è loggato all'apertura della pagina
+    if (_profiloService.currentUser == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Devi effettuare il login per creare una segnalazione veloce'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          Navigator.pop(context);
+        }
+      });
+    }
   }
 
   Future<void> _aggiornaPosizione() async {
@@ -30,33 +55,124 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
         _ultimaPosizione = LatLng(pos.latitude, pos.longitude);
       });
     } catch (e) {
+      // Se fallisce la geolocalizzazione, usa posizione di default (Napoli)
+      setState(() {
+        _ultimaPosizione = LatLng(40.8522, 14.2681);
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore ottenendo la posizione: $e'),
-            backgroundColor: Colors.red,
+            content: Text('Posizione GPS non disponibile. Uso posizione predefinita.'),
+            backgroundColor: Colors.orange,
           ),
         );
       }
     }
   }
 
-  void _mostraSegnalazione() {
-    setState(() {
-      _mostraNotifica = true;
-    });
-
-    if (_ultimaPosizione != null) {
-      widget.aggiungiMarkerCallback(_ultimaPosizione!);
+  Future<void> _mostraSegnalazione() async {
+    if (_ultimaPosizione == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Attendi il caricamento della posizione...'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
     }
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    // Verifica nuovamente se l'utente è loggato prima dell'invio
+    if (_profiloService.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Devi effettuare il login per creare una segnalazione veloce'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Navigator.pop(context);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Usa lo stesso schema della manuale (niente date/time esplicite, backend le aggiunge)
+      final Map<String, dynamic> payload = {
+        'incident_longitude': _ultimaPosizione!.longitude,
+        'incident_latitude': _ultimaPosizione!.latitude,
+        'seriousness': 'high',
+        'category': 'tamponamento', // categoria compatibile con la manuale
+        'description': 'Segnalazione creata rapidamente tramite funzione veloce',
+        'img_url': null,
+      };
+
+      // Log in console (anche in release usa print)
+      print('Segnalazione veloce → POST $baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}');
+      print('Payload: $payload');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (mounted) {
         setState(() {
-          _mostraNotifica = false;
+          _isLoading = false;
         });
       }
-    });
+
+      if (response.statusCode == 201) {
+        // Segnalazione creata con successo
+        if (mounted) {
+          setState(() {
+            _mostraNotifica = true;
+          });
+
+          // Aggiungi marker sulla mappa
+          widget.aggiungiMarkerCallback(_ultimaPosizione!);
+
+          // Nascondi notifica dopo 1.5 secondi
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              setState(() {
+                _mostraNotifica = false;
+              });
+              // Torna alla mappa dopo aver mostrato la notifica
+              Navigator.pop(context);
+            }
+          });
+        }
+      } else {
+        // Errore dal server: mostro status e body
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Errore ${response.statusCode}: ${response.body}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        print('Errore di rete segnalazione veloce: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore di rete: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -156,15 +272,25 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: ElevatedButton(
-                onPressed: _mostraSegnalazione,
+                onPressed: _isLoading ? null : _mostraSegnalazione,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black87,
                   minimumSize: const Size(double.infinity, 50),
+                  disabledBackgroundColor: Colors.grey,
                 ),
-                child: const Text(
-                  "CONFERMA SEGNALAZIONE VELOCE",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "CONFERMA SEGNALAZIONE VELOCE",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
               ),
             ),
           ),
