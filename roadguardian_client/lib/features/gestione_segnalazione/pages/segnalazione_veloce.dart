@@ -9,7 +9,10 @@ import 'package:roadguardian_client/services/api/profile_service.dart';
 class SegnalazioneVelocePage extends StatefulWidget {
   final Function(LatLng) aggiungiMarkerCallback;
 
-  const SegnalazioneVelocePage({super.key, required this.aggiungiMarkerCallback});
+  const SegnalazioneVelocePage({
+    super.key,
+    required this.aggiungiMarkerCallback,
+  });
 
   @override
   State<SegnalazioneVelocePage> createState() => _SegnalazioneVelocePageState();
@@ -20,7 +23,8 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
   bool _mostraNotifica = false;
   bool _isLoading = false;
   final ProfiloService _profiloService = ProfiloService();
-  final String baseUrl = "http://10.0.2.2:8000"; // Indirizzo server per emulatore Android
+  final String baseUrl =
+      "http://10.0.2.2:8000"; // Indirizzo server per emulatore Android
 
   @override
   void initState() {
@@ -36,7 +40,9 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Devi effettuare il login per creare una segnalazione veloce'),
+              content: Text(
+                'Devi effettuare il login per creare una segnalazione veloce',
+              ),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -50,7 +56,8 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
   Future<void> _aggiornaPosizione() async {
     try {
       final pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+        desiredAccuracy: LocationAccuracy.high,
+      );
       setState(() {
         _ultimaPosizione = LatLng(pos.latitude, pos.longitude);
       });
@@ -62,7 +69,9 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Posizione GPS non disponibile. Uso posizione predefinita.'),
+            content: Text(
+              'Posizione GPS non disponibile. Uso posizione predefinita.',
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -85,7 +94,9 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
     if (_profiloService.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Devi effettuare il login per creare una segnalazione veloce'),
+          content: Text(
+            'Devi effettuare il login per creare una segnalazione veloce',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -104,16 +115,21 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
         'incident_latitude': _ultimaPosizione!.latitude,
         'seriousness': 'high',
         'category': 'tamponamento', // categoria compatibile con la manuale
-        'description': 'Segnalazione creata rapidamente tramite funzione veloce',
+        'description':
+            'Segnalazione creata rapidamente tramite funzione veloce',
         'img_url': null,
       };
 
       // Log in console (use debugPrint instead of print)
-      debugPrint('Segnalazione veloce → POST $baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}');
+      debugPrint(
+        'Segnalazione veloce → POST $baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}',
+      );
       debugPrint('Payload: $payload');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}'),
+        Uri.parse(
+          '$baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}',
+        ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );
@@ -178,21 +194,17 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Nuova Segnalazione"),
-      ),
+      appBar: AppBar(title: const Text("Nuova Segnalazione")),
       body: Stack(
         children: [
           // MAPPA SOTTO
           if (_ultimaPosizione != null)
             FlutterMap(
-              options: MapOptions(
-                center: _ultimaPosizione,
-                zoom: 15.0,
-              ),
+              options: MapOptions(center: _ultimaPosizione, zoom: 15.0),
               children: [
                 TileLayer(
-                  urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  urlTemplate:
+                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                   subdomains: const ['a', 'b', 'c'],
                 ),
                 MarkerLayer(
@@ -253,14 +265,21 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
                 color: Colors.green,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
                 ],
               ),
               child: const Center(
                 child: Text(
                   '📍 Segnalazione piazzata!',
                   style: TextStyle(
-                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

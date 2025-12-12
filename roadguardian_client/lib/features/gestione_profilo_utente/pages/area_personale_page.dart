@@ -62,25 +62,27 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
 
               Container(
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
-                      _buildMenuTile(
-                        context,
-                        icon: Icons.person_outline,
-                        color: customPurple,
-                        title: "Informazioni personali",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DettagliProfiloPage(utente: _utente),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                    _buildMenuTile(
+                      context,
+                      icon: Icons.person_outline,
+                      color: customPurple,
+                      title: "Informazioni personali",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                DettagliProfiloPage(utente: _utente),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
 
@@ -102,14 +104,19 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12))),
-                  child: const Text("LOGOUT",
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "LOGOUT",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
 
@@ -128,14 +135,19 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12))),
-                  child: const Text("TORNA ALLA MAPPA",
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "TORNA ALLA MAPPA",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -145,15 +157,19 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
     );
   }
 
-  Widget _buildMenuTile(BuildContext context,
-      {required IconData icon,
-      required Color color,
-      required String title,
-      required VoidCallback onTap}) {
+  Widget _buildMenuTile(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return ListTile(
       leading: Icon(icon, color: color, size: 28),
-      title: Text(title,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+      ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -187,8 +203,9 @@ class DettagliProfiloPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
                     _buildInfoRow("Nome", utente.nome),
@@ -221,14 +238,16 @@ class DettagliProfiloPage extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: customPurple,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     "MODIFICA DATI",
                     style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -244,7 +263,8 @@ class DettagliProfiloPage extends StatelessWidget {
                     final ctx = context;
 
                     // Dialog per chiedere la password di conferma
-                    final TextEditingController passwordController = TextEditingController();
+                    final TextEditingController passwordController =
+                        TextEditingController();
                     final bool? conferma = await showDialog<bool>(
                       context: ctx,
                       builder: (dialogCtx) => AlertDialog(
@@ -254,7 +274,10 @@ class DettagliProfiloPage extends StatelessWidget {
                           children: [
                             const Text(
                               "Stai per cancellare il tuo account. Questa azione non può essere annullata.",
-                              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const SizedBox(height: 16),
                             TextField(
@@ -280,10 +303,15 @@ class DettagliProfiloPage extends StatelessWidget {
                       ),
                     );
 
-                    if (conferma == true && passwordController.text.isNotEmpty) {
+                    if (conferma == true &&
+                        passwordController.text.isNotEmpty) {
                       try {
                         final service = ProfiloService();
-                        await service.deleteUser(utente.id, utente.email, passwordController.text);
+                        await service.deleteUser(
+                          utente.id,
+                          utente.email,
+                          passwordController.text,
+                        );
 
                         if (!ctx.mounted) return;
 
@@ -298,24 +326,29 @@ class DettagliProfiloPage extends StatelessWidget {
                           SnackBar(content: Text('Errore cancellazione: $e')),
                         );
                       }
-                    } else if (conferma == true && passwordController.text.isEmpty) {
+                    } else if (conferma == true &&
+                        passwordController.text.isEmpty) {
                       if (!ctx.mounted) return;
                       ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(content: Text('Inserisci la password per confermare')),
+                        const SnackBar(
+                          content: Text('Inserisci la password per confermare'),
+                        ),
                       );
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     "CANCELLAZIONE ACCOUNT",
                     style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -331,14 +364,16 @@ class DettagliProfiloPage extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     "INDIETRO",
                     style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -356,8 +391,10 @@ class DettagliProfiloPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(color: Colors.grey, fontSize: 16)),
-          Text(value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
         ],
       ),
     );

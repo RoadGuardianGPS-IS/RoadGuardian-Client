@@ -31,7 +31,8 @@ class _MappaPageState extends State<MappaPage> {
   static final List<Marker> _persistentExtraMarkers = [];
 
   bool _showSegnalazioneVeloce = false;
-  final Set<String> _segnalazioniNotificate = {}; // Traccia le segnalazioni già notificate
+  final Set<String> _segnalazioniNotificate =
+      {}; // Traccia le segnalazioni già notificate
 
   @override
   void initState() {
@@ -43,7 +44,8 @@ class _MappaPageState extends State<MappaPage> {
 
   Future<void> _caricaSegnalazioni() async {
     try {
-      final tutteLeSegnalazioni = await _segnalazioneService.getSegnalazioniAttive();
+      final tutteLeSegnalazioni = await _segnalazioneService
+          .getSegnalazioniAttive();
       const Distance distanceCalculator = Distance();
       final segnalazioniVicine = tutteLeSegnalazioni.where((s) {
         final double metri = distanceCalculator.as(
@@ -73,9 +75,14 @@ class _MappaPageState extends State<MappaPage> {
           longitude: _posizioneUtente.longitude,
           onSegnalazioneConfermata: () {
             // Aggiungi il marker localmente subito
-            aggiungiMarker(LatLng(_posizioneUtente.latitude, _posizioneUtente.longitude));
+            aggiungiMarker(
+              LatLng(_posizioneUtente.latitude, _posizioneUtente.longitude),
+            );
             // Poi ricarica le segnalazioni dal server dopo un breve delay
-            Future.delayed(const Duration(milliseconds: 500), _caricaSegnalazioni);
+            Future.delayed(
+              const Duration(milliseconds: 500),
+              _caricaSegnalazioni,
+            );
           },
         ),
       ),
@@ -127,7 +134,9 @@ class _MappaPageState extends State<MappaPage> {
     if (_profiloService.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Devi effettuare il login per creare una segnalazione veloce'),
+          content: Text(
+            'Devi effettuare il login per creare una segnalazione veloce',
+          ),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 3),
         ),
@@ -149,37 +158,46 @@ class _MappaPageState extends State<MappaPage> {
       final userId = _profiloService.currentUser!.id;
       // Non blocchiamo l'UI: invio in background
       _segnalazioneService
-          .createSegnalazione(userId, _posizioneUtente.latitude, _posizioneUtente.longitude,
-              seriousness: 'high', description: 'Segnalazione veloce')
+          .createSegnalazione(
+            userId,
+            _posizioneUtente.latitude,
+            _posizioneUtente.longitude,
+            seriousness: 'high',
+            description: 'Segnalazione veloce',
+          )
           .then((ok) {
-        if (!mounted) return;
-        if (ok) {
-          // ricarica segnalazioni per sincronizzare
-          Future.delayed(const Duration(milliseconds: 400), _caricaSegnalazioni);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('📍 Segnalazione inviata al server'),
-              backgroundColor: Colors.green,
-              duration: Duration(milliseconds: 1500),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Errore invio segnalazione al server'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }).catchError((e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore rete: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      });
+            if (!mounted) return;
+            if (ok) {
+              // ricarica segnalazioni per sincronizzare
+              Future.delayed(
+                const Duration(milliseconds: 400),
+                _caricaSegnalazioni,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('📍 Segnalazione inviata al server'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(milliseconds: 1500),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Errore invio segnalazione al server'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          })
+          .catchError((e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Errore rete: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          });
     } else {
       // Utente non loggato: solo marker locale
       ScaffoldMessenger.of(context).showSnackBar(
@@ -217,8 +235,6 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-
-
   void _verificaProssimitaIncidenti() {
     // Verifica se ci sono segnalazioni entro 3 km dalla posizione utente
     const Distance distanceCalculator = Distance();
@@ -231,7 +247,8 @@ class _MappaPageState extends State<MappaPage> {
       );
 
       // Se la distanza è <= 3 km e non è già stata notificata
-      if (distanzaKm <= 3.0 && !_segnalazioniNotificate.contains(segnalazione.id)) {
+      if (distanzaKm <= 3.0 &&
+          !_segnalazioniNotificate.contains(segnalazione.id)) {
         _segnalazioniNotificate.add(segnalazione.id);
         _mostraPopup(segnalazione);
         break; // Mostra solo un popup alla volta
@@ -242,10 +259,14 @@ class _MappaPageState extends State<MappaPage> {
   void _simulaIncidente() async {
     if (_segnalazioni.isEmpty) return;
     final SegnalazioneModel incidente = _segnalazioni.first;
-    final LatLng centroIncidente = LatLng(incidente.latitude, incidente.longitude);
+    final LatLng centroIncidente = LatLng(
+      incidente.latitude,
+      incidente.longitude,
+    );
 
     final double latDiff = centroIncidente.latitude - _posizioneUtente.latitude;
-    final double lngDiff = centroIncidente.longitude - _posizioneUtente.longitude;
+    final double lngDiff =
+        centroIncidente.longitude - _posizioneUtente.longitude;
 
     const double distanzaPerc = 1.0;
     final double latStep = latDiff * distanzaPerc / 100;
@@ -331,7 +352,10 @@ class _MappaPageState extends State<MappaPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 16,
+                      ),
                     ),
                     child: const Text("Vai alle linee guida"),
                   ),
@@ -341,7 +365,10 @@ class _MappaPageState extends State<MappaPage> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.black,
                       side: const BorderSide(color: Colors.grey),
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 16,
+                      ),
                     ),
                     child: const Text("No"),
                   ),
@@ -353,8 +380,10 @@ class _MappaPageState extends State<MappaPage> {
       },
       transitionBuilder: (context, animation1, animation2, child) {
         return SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero)
-              .animate(animation1),
+          position: Tween<Offset>(
+            begin: const Offset(0, -1),
+            end: Offset.zero,
+          ).animate(animation1),
           child: child,
         );
       },
@@ -420,9 +449,8 @@ class _MappaPageState extends State<MappaPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DettaglioSegnalazionePage(
-                              segnalazioneId: s.id,
-                            ),
+                            builder: (context) =>
+                                DettaglioSegnalazionePage(segnalazioneId: s.id),
                           ),
                         );
                       },
@@ -478,7 +506,7 @@ class _MappaPageState extends State<MappaPage> {
                         color: Colors.black.withAlpha(80),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
-                      )
+                      ),
                     ],
                   ),
                   child: Column(
@@ -486,7 +514,10 @@ class _MappaPageState extends State<MappaPage> {
                     children: [
                       const Text(
                         "SEGNALAZIONE VELOCE",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       ElevatedButton(
@@ -525,7 +556,9 @@ class _MappaPageState extends State<MappaPage> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => AreaPersonalePage(user: _profiloService.currentUser!),
+                          builder: (_) => AreaPersonalePage(
+                            user: _profiloService.currentUser!,
+                          ),
                         ),
                       );
                     } else {
@@ -549,7 +582,10 @@ class _MappaPageState extends State<MappaPage> {
                   heroTag: 'segnalazione_veloce_menu',
                   backgroundColor: Colors.green,
                   onPressed: _toggleSegnalazioneVeloce,
-                  child: const Icon(Icons.notifications_active, color: Colors.white),
+                  child: const Icon(
+                    Icons.notifications_active,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(

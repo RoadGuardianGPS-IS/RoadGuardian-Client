@@ -64,10 +64,7 @@ class ProfiloService {
     final response = await http.post(
       Uri.parse('$baseUrl/profilo/delete/$userId'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     if (response.statusCode == 200) {
@@ -88,7 +85,9 @@ class ProfiloService {
     if (user.nome.isNotEmpty) body['first_name'] = user.nome;
     if (user.cognome.isNotEmpty) body['last_name'] = user.cognome;
     if (user.numeroTelefono != null) body['num_tel'] = user.numeroTelefono;
-    if (user.password != null && user.password!.isNotEmpty) body['password'] = user.password;
+    if (user.password != null && user.password!.isNotEmpty) {
+      body['password'] = user.password;
+    }
 
     final response = await http.put(
       Uri.parse('$baseUrl/profilo/${user.id}'),

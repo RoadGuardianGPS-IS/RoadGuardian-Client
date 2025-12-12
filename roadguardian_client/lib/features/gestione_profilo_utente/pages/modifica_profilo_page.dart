@@ -27,10 +27,12 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
     super.initState();
     _nomeController = TextEditingController(text: widget.user.nome);
     _cognomeController = TextEditingController(text: widget.user.cognome);
-    _telefonoController =
-        TextEditingController(text: widget.user.numeroTelefono ?? '');
-    _passwordController =
-        TextEditingController(text: widget.user.password ?? '');
+    _telefonoController = TextEditingController(
+      text: widget.user.numeroTelefono ?? '',
+    );
+    _passwordController = TextEditingController(
+      text: widget.user.password ?? '',
+    );
   }
 
   @override
@@ -70,9 +72,9 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
       Navigator.pop(context, result);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Errore aggiornamento: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Errore aggiornamento: $e")));
     }
 
     if (mounted) setState(() => _loading = false);
@@ -113,21 +115,33 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
                     const SizedBox(height: 16),
                     _buildTextField("Cognome", _cognomeController),
                     const SizedBox(height: 16),
-                    _buildTextField("Email", TextEditingController(text: widget.user.email), readOnly: true),
+                    _buildTextField(
+                      "Email",
+                      TextEditingController(text: widget.user.email),
+                      readOnly: true,
+                    ),
                     const SizedBox(height: 16),
-                    _buildTextField("Telefono", _telefonoController, isPhone: true),
+                    _buildTextField(
+                      "Telefono",
+                      _telefonoController,
+                      isPhone: true,
+                    ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: "Password",
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         filled: true,
                         fillColor: Colors.white,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                           ),
                           onPressed: () {
@@ -172,8 +186,12 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      {bool readOnly = false, bool isPhone = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool readOnly = false,
+    bool isPhone = false,
+  }) {
     return TextField(
       controller: controller,
       readOnly: readOnly,

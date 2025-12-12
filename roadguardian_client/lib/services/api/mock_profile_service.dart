@@ -16,10 +16,15 @@ class MockProfileService {
   }
 
   // Recupera utente per email e password
-  Future<UserModel?> fetchUserByEmailAndPassword(String email, String password) async {
+  Future<UserModel?> fetchUserByEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     await Future.delayed(const Duration(milliseconds: 500));
     try {
-      return _users.firstWhere((u) => u.email == email && u.password == password);
+      return _users.firstWhere(
+        (u) => u.email == email && u.password == password,
+      );
     } catch (_) {
       return null;
     }
@@ -46,14 +51,16 @@ class MockProfileService {
   // Aggiunge un utente di default
   void addDefaultUser() {
     if (_users.isEmpty) {
-      _users.add(UserModel(
-        id: "1",
-        nome: "Mario",
-        cognome: "Rossi",
-        email: "mario.rossi@studenti.unisa.it",
-        password: "passwordSegreta123",
-        numeroTelefono: "+39 333 1234567",
-      ));
+      _users.add(
+        UserModel(
+          id: "1",
+          nome: "Mario",
+          cognome: "Rossi",
+          email: "mario.rossi@studenti.unisa.it",
+          password: "passwordSegreta123",
+          numeroTelefono: "+39 333 1234567",
+        ),
+      );
     }
   }
 

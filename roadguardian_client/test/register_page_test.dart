@@ -8,21 +8,34 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Flusso registrazione', () {
-    testWidgets('Registrazione corretto porta ad AreaPersonalePage', (tester) async {
+    testWidgets('Registrazione corretto porta ad AreaPersonalePage', (
+      tester,
+    ) async {
       // --- Build dell'app con RegisterPage ---
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: RegisterPage(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
       // --- Inserimento dati di registrazione ---
       await tester.enterText(find.byKey(const Key('register_nome')), 'Mario');
-      await tester.enterText(find.byKey(const Key('register_cognome')), 'Rossi');
-      await tester.enterText(find.byKey(const Key('register_email')), 'mario.rossi@test.it');
-      await tester.enterText(find.byKey(const Key('register_password')), 'Password123');
-      await tester.enterText(find.byKey(const Key('register_confirm_password')), 'Password123');
-      await tester.enterText(find.byKey(const Key('register_telefono')), '3331234567');
+      await tester.enterText(
+        find.byKey(const Key('register_cognome')),
+        'Rossi',
+      );
+      await tester.enterText(
+        find.byKey(const Key('register_email')),
+        'mario.rossi@test.it',
+      );
+      await tester.enterText(
+        find.byKey(const Key('register_password')),
+        'Password123',
+      );
+      await tester.enterText(
+        find.byKey(const Key('register_confirm_password')),
+        'Password123',
+      );
+      await tester.enterText(
+        find.byKey(const Key('register_telefono')),
+        '3331234567',
+      );
 
       await tester.pumpAndSettle();
 

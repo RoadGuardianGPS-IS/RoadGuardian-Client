@@ -40,16 +40,11 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     "Collisione con ostacolo",
     "Veicolo fuori strada",
     "Investimento",
-    "Incendio veicolo"
+    "Incendio veicolo",
   ];
 
   // PRIORITA INCIDENTE
-  final List<String> _prioritaIncidente = [
-    "bassa",
-    "media",
-    "alta",
-    "critica"
-  ];
+  final List<String> _prioritaIncidente = ["bassa", "media", "alta", "critica"];
 
   // Colori del tema
   final Color customBackground = const Color(0xFFF0F0F0);
@@ -72,7 +67,9 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Devi effettuare il login per creare una segnalazione'),
+              content: Text(
+                'Devi effettuare il login per creare una segnalazione',
+              ),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -114,7 +111,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         "Collisione con ostacolo": "collisione laterale",
         "Veicolo fuori strada": "deragliamento",
         "Investimento": "investimento",
-        "Incendio veicolo": "ostacolo sulla strada"
+        "Incendio veicolo": "ostacolo sulla strada",
       };
 
       // Mappa la priorità ai valori accettati dal backend (low, medium, high)
@@ -122,16 +119,19 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         "bassa": "low",
         "media": "medium",
         "alta": "high",
-        "critica": "high"
+        "critica": "high",
       };
 
       // Ottieni data e ora attuali
       final now = DateTime.now();
       final dateFormat = now.toString().split(' ')[0]; // YYYY-MM-DD
-      final timeFormat = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+      final timeFormat =
+          "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
       final response = await http.post(
-        Uri.parse('$baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}'),
+        Uri.parse(
+          '$baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}',
+        ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'incident_date': dateFormat,
@@ -139,7 +139,9 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
           'incident_longitude': widget.longitude,
           'incident_latitude': widget.latitude,
           'seriousness': prioritaMapping[_prioritaSelezionata] ?? 'medium',
-          'category': categoriaMapping[_categoriaSelezionata] ?? _categoriaSelezionata!.toLowerCase(),
+          'category':
+              categoriaMapping[_categoriaSelezionata] ??
+              _categoriaSelezionata!.toLowerCase(),
           'description': _descrizioneController.text,
         }),
       );
@@ -166,7 +168,9 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Errore creazione segnalazione: ${response.statusCode}\nRisposta: ${response.body}'),
+              content: Text(
+                'Errore creazione segnalazione: ${response.statusCode}\nRisposta: ${response.body}',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -258,8 +262,9 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                           TextFormField(
                             controller: _descrizioneController,
                             maxLines: 4,
-                            decoration:
-                                _inputDecoration("Descrizione dettagliata"),
+                            decoration: _inputDecoration(
+                              "Descrizione dettagliata",
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Descrivi l\'accaduto';
@@ -279,8 +284,10 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.location_on,
-                                    color: Colors.redAccent),
+                                const Icon(
+                                  Icons.location_on,
+                                  color: Colors.redAccent,
+                                ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
@@ -290,17 +297,22 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                                       const Text(
                                         "Posizione rilevata:",
                                         style: TextStyle(
-                                            fontSize: 12, color: Colors.grey),
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                       Text(
                                         widget.indirizzoStimato,
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                       Text(
                                         "${widget.latitude.toStringAsFixed(5)}, ${widget.longitude.toStringAsFixed(5)}",
                                         style: const TextStyle(
-                                            fontSize: 12, color: Colors.grey),
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -322,14 +334,16 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: customPurple,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text(
                           "CONFERMA SEGNALAZIONE",
                           style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),

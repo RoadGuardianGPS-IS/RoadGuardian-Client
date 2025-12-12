@@ -24,9 +24,16 @@ class SegnalazioneService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => SegnalazioneModel.fromJson(json as Map<String, dynamic>)).toList();
+        return data
+            .map(
+              (json) =>
+                  SegnalazioneModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
       } else {
-        throw Exception('Errore caricamento segnalazioni: ${response.statusCode}');
+        throw Exception(
+          'Errore caricamento segnalazioni: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Errore: $e');
@@ -45,7 +52,9 @@ class SegnalazioneService {
         final data = jsonDecode(response.body);
         return SegnalazioneModel.fromJson(data);
       } else {
-        throw Exception('Errore caricamento segnalazione: ${response.statusCode}');
+        throw Exception(
+          'Errore caricamento segnalazione: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Errore: $e');
@@ -53,12 +62,19 @@ class SegnalazioneService {
   }
 
   // CREA NUOVA SEGNALAZIONE (usata da segnalazione manuale e veloce)
-  Future<bool> createSegnalazione(String userId, double latitude, double longitude,
-      {String seriousness = 'high', String category = 'incidente stradale', String? description}) async {
+  Future<bool> createSegnalazione(
+    String userId,
+    double latitude,
+    double longitude, {
+    String seriousness = 'high',
+    String category = 'incidente stradale',
+    String? description,
+  }) async {
     try {
       final now = DateTime.now();
       final dateFormat = now.toIso8601String().split('T')[0]; // YYYY-MM-DD
-      final timeFormat = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+      final timeFormat =
+          "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
       final payload = {
         'incident_date': dateFormat,

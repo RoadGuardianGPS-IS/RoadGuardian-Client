@@ -1,7 +1,6 @@
 import 'package:roadguardian_client/features/gestione_segnalazione/models/segnalazione_model.dart'; // <--- IMPORT AGGIORNATO
 
 class MockSegnalazioneService {
-
   final List<Map<String, dynamic>> _mockDatabase = [
     {
       "id": "101",
@@ -15,7 +14,7 @@ class MockSegnalazioneService {
       "gravita": "Alta",
       "stato": "In Corso",
       "immagine_url": "https://via.placeholder.com/600x400",
-      "linee_guida": ["Indossare giubbotto.", "Chiamare 118."]
+      "linee_guida": ["Indossare giubbotto.", "Chiamare 118."],
     },
     {
       "id": "102",
@@ -29,7 +28,7 @@ class MockSegnalazioneService {
       "gravita": "Media",
       "stato": "Aperta",
       "immagine_url": null,
-      "linee_guida": ["Rallentare.", "Segnalare ostacolo."]
+      "linee_guida": ["Rallentare.", "Segnalare ostacolo."],
     },
     // ... altri dati ...
   ];
@@ -43,7 +42,7 @@ class MockSegnalazioneService {
     await Future.delayed(const Duration(seconds: 1));
     final json = _mockDatabase.firstWhere(
       (element) => element['id'] == id,
-      orElse: () => _mockDatabase[0]
+      orElse: () => _mockDatabase[0],
     );
     return SegnalazioneModel.fromJson(json);
   }

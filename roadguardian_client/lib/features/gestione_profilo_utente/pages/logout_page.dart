@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_page.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 import 'package:roadguardian_client/services/api/profile_service.dart';
+
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
 
@@ -21,18 +22,17 @@ class LogoutPage extends StatelessWidget {
               const SizedBox(height: 40),
               const Text(
                 'LOGOUT',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
 
               // Card con messaggio
               Container(
                 width: 320,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 22,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -48,9 +48,7 @@ class LogoutPage extends StatelessWidget {
                   child: Text(
                     'Sei uscito correttamente',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
               ),

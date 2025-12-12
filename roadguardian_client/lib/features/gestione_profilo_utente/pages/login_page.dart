@@ -32,7 +32,9 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => AreaPersonalePage(user: _service.currentUser!)),
+            MaterialPageRoute(
+              builder: (_) => AreaPersonalePage(user: _service.currentUser!),
+            ),
             (route) => false,
           );
         }
@@ -44,16 +46,19 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => loading = true);
 
     try {
-      final user = await _service.login(LoginInput(
-        email: emailController.text,
-        password: passwordController.text,
-      ));
+      final user = await _service.login(
+        LoginInput(
+          email: emailController.text,
+          password: passwordController.text,
+        ),
+      );
 
       if (!mounted) return;
 
       if (user == null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Email o password errata')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email o password errata')),
+        );
       } else {
         Navigator.pushAndRemoveUntil(
           context,
@@ -63,8 +68,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Errore: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Errore: $e')));
     }
 
     if (!mounted) return;
@@ -102,26 +108,34 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              const Text("LOGIN",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text(
+                "LOGIN",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                    color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
                     TextField(
                       controller: emailController,
                       decoration: const InputDecoration(
-                          labelText: "Email", border: OutlineInputBorder()),
+                        labelText: "Email",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                          labelText: "Password", border: OutlineInputBorder()),
+                        labelText: "Password",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                   ],
                 ),
@@ -133,16 +147,21 @@ class _LoginPageState extends State<LoginPage> {
                 child: ElevatedButton(
                   onPressed: loading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: buttonPurple,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12))),
+                    backgroundColor: buttonPurple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("LOGIN",
+                      : const Text(
+                          "LOGIN",
                           style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -152,14 +171,19 @@ class _LoginPageState extends State<LoginPage> {
                 child: ElevatedButton(
                   onPressed: _goToRegister,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: buttonRed,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12))),
-                  child: const Text("REGISTRATI",
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
+                    backgroundColor: buttonRed,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "REGISTRATI",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -169,14 +193,19 @@ class _LoginPageState extends State<LoginPage> {
                 child: ElevatedButton(
                   onPressed: _goToMappa,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: buttonGreen,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12))),
-                  child: const Text("TORNA ALLA MAPPA",
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold)),
+                    backgroundColor: buttonGreen,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    "TORNA ALLA MAPPA",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -31,8 +31,10 @@ class SegnalazioneModel {
     // Supporta sia il formato del backend mappa (_id, incident_latitude, incident_longitude)
     // sia il formato del backend segnalazione (id, latitude, longitude)
     final String idValue = json['_id'] ?? json['id'] ?? '';
-    final dynamic latValue = json['incident_latitude'] ?? json['latitude'] ?? 40.8518;
-    final dynamic lonValue = json['incident_longitude'] ?? json['longitude'] ?? 14.2681;
+    final dynamic latValue =
+        json['incident_latitude'] ?? json['latitude'] ?? 40.8518;
+    final dynamic lonValue =
+        json['incident_longitude'] ?? json['longitude'] ?? 14.2681;
 
     return SegnalazioneModel(
       id: idValue,
@@ -50,9 +52,11 @@ class SegnalazioneModel {
       gravita: json['seriousness'] ?? json['gravita'] ?? 'low',
       stato: json['stato'] ?? 'Aperta',
       immagineUrl: json['immagine_url'],
-      lineeGuida: (json['linee_guida'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
+      lineeGuida:
+          (json['linee_guida'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

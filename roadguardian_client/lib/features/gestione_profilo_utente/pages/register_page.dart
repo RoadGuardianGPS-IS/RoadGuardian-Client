@@ -17,7 +17,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController surnameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
   final ProfiloService _service = ProfiloService();
@@ -51,38 +52,47 @@ class _RegisterPageState extends State<RegisterPage> {
     String cognome = surnameController.text.trim();
     String email = emailController.text.trim();
     String password = passwordController.text;
-    String confirmPassword =  confirmPasswordController.text;
+    String confirmPassword = confirmPasswordController.text;
     String phoneInput = phoneController.text.trim();
     String phone = phoneInput.isEmpty ? "" : "+39$phoneInput";
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Le password non corrispondono')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Le password non corrispondono')),
+      );
       return;
     }
 
     if (!_isPasswordValid(password)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('La password deve contenere: 8-14 caratteri, almeno 1 maiuscolo, 1 numero e 1 carattere speciale')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La password deve contenere: 8-14 caratteri, almeno 1 maiuscolo, 1 numero e 1 carattere speciale',
+          ),
+        ),
+      );
       return;
     }
 
     if (nome.isEmpty || cognome.isEmpty || email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Compila tutti i campi obbligatori')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Compila tutti i campi obbligatori')),
+      );
       return;
     }
 
     setState(() => loading = true);
 
     try {
-      final UserModel? user = await _service.register(RegisterInput(
-        firstName: nome,
-        lastName: cognome,
-        email: email,
-        password: password,
-        numTel: phone.isEmpty ? null : phone, // num_tel opzionale
-      ));
+      final UserModel? user = await _service.register(
+        RegisterInput(
+          firstName: nome,
+          lastName: cognome,
+          email: email,
+          password: password,
+          numTel: phone.isEmpty ? null : phone, // num_tel opzionale
+        ),
+      );
 
       if (!mounted) return;
 
@@ -95,8 +105,9 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Errore registrazione: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Errore registrazione: $e')));
     }
 
     if (!mounted) return;
@@ -121,8 +132,10 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              const Text("REGISTRAZIONE",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text(
+                "REGISTRAZIONE",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -135,28 +148,35 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextField(
                       controller: nameController,
                       decoration: const InputDecoration(
-                          labelText: "Nome", border: OutlineInputBorder()),
+                        labelText: "Nome",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: surnameController,
                       decoration: const InputDecoration(
-                          labelText: "Cognome", border: OutlineInputBorder()),
+                        labelText: "Cognome",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: emailController,
                       decoration: const InputDecoration(
-                          labelText: "Email", border: OutlineInputBorder()),
+                        labelText: "Email",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
-                          prefixText: "+39 ",
-                          labelText: "Telefono",
-                          border: OutlineInputBorder()),
+                        prefixText: "+39 ",
+                        labelText: "Telefono",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
@@ -167,7 +187,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                           ),
                           onPressed: () {
@@ -187,12 +209,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey,
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -209,17 +234,19 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: loading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           "REGISTRATI",
                           style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                 ),
               ),
@@ -231,13 +258,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: _goToLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     "TORNA AL LOGIN",
                     style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
