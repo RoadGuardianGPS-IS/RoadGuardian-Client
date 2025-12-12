@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:roadguardian_client/features/gestione_profilo_utente/models/user_model.dart';
 import 'package:roadguardian_client/services/api/profile_service.dart';
+import 'package:roadguardian_client/services/login_input.dart';
 import 'package:roadguardian_client/services/api/register_input.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 import 'login_page.dart';
@@ -74,14 +75,67 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    if (nome.isEmpty || cognome.isEmpty || email.isEmpty || password.isEmpty) {
+    if (nome.isEmpty || cognome.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Compila tutti i campi obbligatori')),
       );
       return;
     }
 
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inserisci la email')),
+      );
+      return;
+    }
+
+    if (phoneInput.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inserisci il numero di telefono')),
+      );
+      return;
+    }
+
     setState(() => loading = true);
+
+    // Controllo preventivo: verifichiamo se l'email esiste già usando l'endpoint di login
+    // (invio una password fittizia). Se la risposta è 401 (ritorna null) o 200,
+    // significa che l'email è presente. Se il server risponde 404 allora l'email non esiste.
+    try {
+      final check = await _service.login(LoginInput(email: email, password: '__check_email__'));
+      if (check == null) {
+        // 401 -> utente esiste ma password errata
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email già registrata')),
+          );
+          setState(() => loading = false);
+        }
+        return;
+      } else {
+        // login riuscito (molto improbabile con password fittizia) -> email esiste
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email già registrata')),
+          );
+          setState(() => loading = false);
+        }
+        return;
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (!msg.contains('404')) {
+        // Se errore diverso da 404 (utente non trovato), mostriamo errore e interrompiamo
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Errore verifica email: $e')),
+          );
+          setState(() => loading = false);
+        }
+        return;
+      }
+      // se è 404 -> email non trovata, procediamo con la registrazione
+    }
 
     try {
       final UserModel? user = await _service.register(
@@ -105,9 +159,15 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Errore registrazione: $e')));
+      final msg = e.toString().toLowerCase();
+      if (msg.contains('email') && (msg.contains('gi') || msg.contains('gia') || msg.contains('already') || msg.contains('exists') || msg.contains('esistente'))) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email già registrata')),);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore registrazione: $e')),
+        );
+      }
     }
 
     if (!mounted) return;
