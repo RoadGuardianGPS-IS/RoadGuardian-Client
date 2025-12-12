@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 import '../../gestione_profilo_utente/pages/login_page.dart';
 import '../../gestione_profilo_utente/pages/area_personale_page.dart';
@@ -30,9 +28,10 @@ class _MappaPageState extends State<MappaPage> {
   List<SegnalazioneModel> _segnalazioni = [];
   final SegnalazioneService _segnalazioneService = SegnalazioneService();
   final ProfiloService _profiloService = ProfiloService();
-  final List<Marker> _extraMarkers = [];
+  static final List<Marker> _persistentExtraMarkers = [];
 
   bool _showSegnalazioneVeloce = false;
+  bool _menuOpen = false;
   Set<String> _segnalazioniNotificate = {}; // Traccia le segnalazioni già notificate
 
   @override
@@ -73,6 +72,12 @@ class _MappaPageState extends State<MappaPage> {
         builder: (context) => SegnalazioneManualePage(
           latitude: _posizioneUtente.latitude,
           longitude: _posizioneUtente.longitude,
+          onSegnalazioneConfermata: () {
+            // Aggiungi il marker localmente subito
+            aggiungiMarker(LatLng(_posizioneUtente.latitude, _posizioneUtente.longitude));
+            // Poi ricarica le segnalazioni dal server dopo un breve delay
+            Future.delayed(const Duration(milliseconds: 500), _caricaSegnalazioni);
+          },
         ),
       ),
     );
@@ -80,7 +85,7 @@ class _MappaPageState extends State<MappaPage> {
 
   void aggiungiMarker(LatLng posizione) {
     setState(() {
-      _extraMarkers.add(
+      _persistentExtraMarkers.add(
         Marker(
           point: posizione,
           width: 100,
@@ -136,70 +141,57 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-  Future<void> _confermaSegnalazioneVeloce() async {
-    // Verifica autenticazione
-    if (_profiloService.currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Devi effettuare il login per creare una segnalazione'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+  void _confermaSegnalazioneVeloce() {
+    // Aggiungi marker localmente subito
+    aggiungiMarker(_posizioneUtente);
 
-    try {
-      // Payload per segnalazione veloce
-      final Map<String, dynamic> payload = {
-        'incident_longitude': _posizioneUtente.longitude,
-        'incident_latitude': _posizioneUtente.latitude,
-        'seriousness': 'high',
-        'category': 'incidente stradale',
-        'description': null,
-        'img_url': null,
-      };
-
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/segnalazione/createsegnalazioneveloce/${_profiloService.currentUser!.id}'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
-
-      if (response.statusCode == 201) {
-        // Successo: aggiungi marker e mostra notifica
-        aggiungiMarker(_posizioneUtente);
-        if (mounted) {
+    // Se l'utente è autenticato invia la segnalazione al server
+    if (_profiloService.currentUser != null) {
+      final userId = _profiloService.currentUser!.id;
+      // Non blocchiamo l'UI: invio in background
+      _segnalazioneService
+          .createSegnalazione(userId, _posizioneUtente.latitude, _posizioneUtente.longitude,
+              seriousness: 'high', description: 'Segnalazione veloce')
+          .then((ok) {
+        if (ok) {
+          // ricarica segnalazioni per sincronizzare
+          Future.delayed(const Duration(milliseconds: 400), _caricaSegnalazioni);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('📍 Segnalazione piazzata!'),
+              content: Text('📍 Segnalazione inviata al server'),
               backgroundColor: Colors.green,
               duration: Duration(milliseconds: 1500),
             ),
           );
-        }
-        _toggleSegnalazioneVeloce();
-      } else {
-        // Errore dal server
-        if (mounted) {
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Errore ${response.statusCode}: ${response.body}'),
+            const SnackBar(
+              content: Text('Errore invio segnalazione al server'),
               backgroundColor: Colors.red,
             ),
           );
         }
-      }
-    } catch (e) {
-      // Errore di rete
-      if (mounted) {
+      }).catchError((e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore di rete: $e'),
+            content: Text('Errore rete: $e'),
             backgroundColor: Colors.red,
           ),
         );
-      }
+      });
+    } else {
+      // Utente non loggato: solo marker locale
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Segnalazione piazzata localmente (login mancante)'),
+          backgroundColor: Colors.orange,
+          duration: Duration(milliseconds: 1500),
+        ),
+      );
     }
+
+    // Chiudi il pannello veloce
+    _toggleSegnalazioneVeloce();
   }
 
   void _zoomIn() {
@@ -212,6 +204,14 @@ class _MappaPageState extends State<MappaPage> {
   void _zoomOut() {
     setState(() {
       if (_currentZoom > 5) _currentZoom--;
+      _mapController.move(_posizioneUtente, _currentZoom);
+    });
+  }
+
+  // Centra la mappa sulla posizione corrente dell'utente/marker senza mostrare popup
+  void _centraSulMarker() {
+    if (!mounted) return;
+    setState(() {
       _mapController.move(_posizioneUtente, _currentZoom);
     });
   }
@@ -463,7 +463,7 @@ class _MappaPageState extends State<MappaPage> {
                   );
                 }).toList(),
               ),
-              MarkerLayer(markers: _extraMarkers),
+              MarkerLayer(markers: _persistentExtraMarkers),
             ],
           ),
           if (_showSegnalazioneVeloce)
@@ -515,18 +515,18 @@ class _MappaPageState extends State<MappaPage> {
                 ),
               ),
             ),
-          // FloatingActionButton avatar - Verifica sessione
+          // Floating menu simplified: always-visible column of action buttons (no toggle)
           Positioned(
             bottom: 20,
             right: 10,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 FloatingActionButton(
-                  heroTag: 'login_page',
+                  heroTag: 'login_page_menu',
                   backgroundColor: Colors.purple,
                   onPressed: () {
                     if (_profiloService.currentUser != null) {
-                      // Utente loggato → vai all'area personale
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -534,7 +534,6 @@ class _MappaPageState extends State<MappaPage> {
                         ),
                       );
                     } else {
-                      // Utente non loggato → vai al login
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -545,35 +544,45 @@ class _MappaPageState extends State<MappaPage> {
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
-                  heroTag: 'segnalazione_manuale',
+                  heroTag: 'segnalazione_manuale_menu',
                   backgroundColor: Colors.orange,
                   onPressed: _vaiASegnalazioneManuale,
                   child: const Icon(Icons.add_alert, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
-                  heroTag: 'segnalazione_veloce',
+                  heroTag: 'segnalazione_veloce_menu',
                   backgroundColor: Colors.green,
                   onPressed: _toggleSegnalazioneVeloce,
                   child: const Icon(Icons.notifications_active, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
-                  heroTag: 'posizione_utente',
+                  heroTag: 'posizione_utente_menu',
                   backgroundColor: Colors.blue,
-                  onPressed: _vaiAllaPosizioneUtente,
+                  onPressed: _centraSulMarker,
                   child: const Icon(Icons.my_location, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
-                  heroTag: 'fake_incidente',
+                  heroTag: 'fake_incidente_menu',
                   backgroundColor: Colors.red,
                   onPressed: _simulaIncidente,
                   child: const Icon(Icons.warning, color: Colors.white),
                 ),
-                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+          // (removed separate fake-incident Positioned; red is now in the menu column)
+          // zoom controls positioned to the left of the menu toggle
+          Positioned(
+            bottom: 20,
+            right: 84,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 FloatingActionButton(
-                  heroTag: 'zoom_in',
+                  heroTag: 'zoom_in_pos',
                   mini: true,
                   backgroundColor: Colors.white,
                   onPressed: _zoomIn,
@@ -581,7 +590,7 @@ class _MappaPageState extends State<MappaPage> {
                 ),
                 const SizedBox(height: 8),
                 FloatingActionButton(
-                  heroTag: 'zoom_out',
+                  heroTag: 'zoom_out_pos',
                   mini: true,
                   backgroundColor: Colors.white,
                   onPressed: _zoomOut,

@@ -51,4 +51,34 @@ class SegnalazioneService {
       throw Exception('Errore: $e');
     }
   }
+
+  // CREA NUOVA SEGNALAZIONE (usata da segnalazione manuale e veloce)
+  Future<bool> createSegnalazione(String userId, double latitude, double longitude,
+      {String seriousness = 'high', String category = 'incidente stradale', String? description}) async {
+    try {
+      final now = DateTime.now();
+      final dateFormat = now.toIso8601String().split('T')[0]; // YYYY-MM-DD
+      final timeFormat = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+
+      final payload = {
+        'incident_date': dateFormat,
+        'incident_time': timeFormat,
+        'incident_longitude': longitude,
+        'incident_latitude': latitude,
+        'seriousness': seriousness,
+        'category': category,
+        'description': description,
+      };
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/segnalazione/creasegnalazione/$userId'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      return response.statusCode == 201;
+    } catch (e) {
+      throw Exception('Errore creazione segnalazione: $e');
+    }
+  }
 }

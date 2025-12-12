@@ -8,12 +8,14 @@ class SegnalazioneManualePage extends StatefulWidget {
   final double latitude;
   final double longitude;
   final String indirizzoStimato;
+  final VoidCallback? onSegnalazioneConfermata;
 
   const SegnalazioneManualePage({
     super.key,
     required this.latitude,
     required this.longitude,
     this.indirizzoStimato = "Posizione selezionata",
+    this.onSegnalazioneConfermata,
   });
 
   @override
@@ -29,8 +31,8 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
 
   // Stato
   String? _categoriaSelezionata;
+  String? _prioritaSelezionata = "media";
   bool _isLoading = false;
-  bool _fotoCaricata = false;
 
   // LE 5 CATEGORIE DA RAD
   final List<String> _categorieRAD = [
@@ -39,6 +41,14 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     "Veicolo fuori strada",
     "Investimento",
     "Incendio veicolo"
+  ];
+
+  // PRIORITA INCIDENTE
+  final List<String> _prioritaIncidente = [
+    "bassa",
+    "media",
+    "alta",
+    "critica"
   ];
 
   // Colori del tema
@@ -107,16 +117,30 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         "Incendio veicolo": "ostacolo sulla strada"
       };
 
+      // Mappa la priorità ai valori accettati dal backend (low, medium, high)
+      final Map<String, String> prioritaMapping = {
+        "bassa": "low",
+        "media": "medium",
+        "alta": "high",
+        "critica": "high"
+      };
+
+      // Ottieni data e ora attuali
+      final now = DateTime.now();
+      final dateFormat = now.toString().split(' ')[0]; // YYYY-MM-DD
+      final timeFormat = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+
       final response = await http.post(
         Uri.parse('$baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
+          'incident_date': dateFormat,
+          'incident_time': timeFormat,
           'incident_longitude': widget.longitude,
           'incident_latitude': widget.latitude,
-          'seriousness': 'high', // Segnalazione manuale completa = gravità alta
+          'seriousness': prioritaMapping[_prioritaSelezionata] ?? 'medium',
           'category': categoriaMapping[_categoriaSelezionata] ?? _categoriaSelezionata!.toLowerCase(),
           'description': _descrizioneController.text,
-          'img_url': _fotoCaricata ? 'https://via.placeholder.com/600x400' : null,
         }),
       );
 
@@ -133,6 +157,8 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
               backgroundColor: Colors.green,
             ),
           );
+          // Chiama il callback per ricaricare le segnalazioni sulla mappa
+          widget.onSegnalazioneConfermata?.call();
           Navigator.pop(context);
         }
       } else {
@@ -140,7 +166,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Errore creazione segnalazione: ${response.statusCode}'),
+              content: Text('Errore creazione segnalazione: ${response.statusCode}\nRisposta: ${response.body}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -182,50 +208,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- SEZIONE 1: FOTO ---
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          // Qui andrà la logica ImagePicker
-                          setState(() {
-                            _fotoCaricata = !_fotoCaricata;
-                          });
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade300),
-                            image: _fotoCaricata
-                                ? const DecorationImage(
-                                    image: NetworkImage(
-                                        "https://via.placeholder.com/600x400"),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                          ),
-                          child: _fotoCaricata
-                              ? null
-                              : Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.camera_alt,
-                                        size: 50, color: customPurple),
-                                    const SizedBox(height: 10),
-                                    const Text(
-                                      "Tocca per aggiungere foto",
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // --- SEZIONE 2: FORM DATI ---
+                    // --- SEZIONE 1: FORM DATI ---
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -248,6 +231,24 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                             onChanged: (newValue) {
                               setState(() {
                                 _categoriaSelezionata = newValue;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Dropdown Priorità
+                          DropdownButtonFormField<String>(
+                            decoration: _inputDecoration("Priorità Incidente"),
+                            value: _prioritaSelezionata,
+                            items: _prioritaIncidente.map((String priorita) {
+                              return DropdownMenuItem<String>(
+                                value: priorita,
+                                child: Text(_formatPriority(priorita)),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                _prioritaSelezionata = newValue;
                               });
                             },
                           ),
@@ -356,5 +357,21 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
       filled: true,
       fillColor: Colors.white,
     );
+  }
+
+  // Formattazione priorità per visualizzazione
+  String _formatPriority(String priority) {
+    switch (priority) {
+      case 'bassa':
+        return 'Bassa';
+      case 'media':
+        return 'Media';
+      case 'alta':
+        return 'Alta';
+      case 'critica':
+        return 'Critica';
+      default:
+        return priority;
+    }
   }
 }
