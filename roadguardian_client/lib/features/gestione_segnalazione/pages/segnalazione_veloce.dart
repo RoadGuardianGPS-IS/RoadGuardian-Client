@@ -71,12 +71,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
   }
 
   Future<void> _mostraSegnalazione() async {
-    print('[DEBUG] _mostraSegnalazione chiamato');
-    print('[DEBUG] _ultimaPosizione: $_ultimaPosizione');
-    print('[DEBUG] currentUser: ${_profiloService.currentUser}');
-
     if (_ultimaPosizione == null) {
-      print('[DEBUG] Posizione mancante, uscita anticipata');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Attendi il caricamento della posizione...'),
@@ -88,7 +83,6 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
 
     // Verifica nuovamente se l'utente è loggato prima dell'invio
     if (_profiloService.currentUser == null) {
-      print('[DEBUG] Utente non loggato, uscita anticipata');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Devi effettuare il login per creare una segnalazione veloce'),
@@ -99,34 +93,33 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
       return;
     }
 
-    print('[DEBUG] Controlli superati, inizio invio');
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Payload con campi obbligatori e default espliciti per compatibilità con Pydantic
+      // Usa lo stesso schema della manuale (niente date/time esplicite, backend le aggiunge)
       final Map<String, dynamic> payload = {
         'incident_longitude': _ultimaPosizione!.longitude,
         'incident_latitude': _ultimaPosizione!.latitude,
         'seriousness': 'high',
-        'category': 'incidente stradale',
-        'description': null,
+        'category': 'tamponamento', // categoria compatibile con la manuale
+        'description': 'Segnalazione creata rapidamente tramite funzione veloce',
         'img_url': null,
       };
 
-      // Log in console (anche in release usa print)
-      print('[DEBUG] Segnalazione veloce → POST $baseUrl/segnalazione/createsegnalazioneveloce/${_profiloService.currentUser!.id}');
-      print('[DEBUG] Payload: $payload');
+      // Log in console (use debugPrint instead of print)
+      debugPrint('Segnalazione veloce → POST $baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}');
+      debugPrint('Payload: $payload');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/segnalazione/createsegnalazioneveloce/${_profiloService.currentUser!.id}'),
+        Uri.parse('$baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );
 
-      print('[DEBUG] Response status: ${response.statusCode}');
-      print('[DEBUG] Response body: ${response.body}');
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
       if (mounted) {
         setState(() {
@@ -171,7 +164,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
         setState(() {
           _isLoading = false;
         });
-        print('Errore di rete segnalazione veloce: $e');
+        debugPrint('Errore di rete segnalazione veloce: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Errore di rete: $e'),
@@ -184,7 +177,6 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
 
   @override
   Widget build(BuildContext context) {
-    print('[BUILD] _isLoading: $_isLoading, _ultimaPosizione: $_ultimaPosizione');
     return Scaffold(
       appBar: AppBar(
         title: const Text("Nuova Segnalazione"),
@@ -280,14 +272,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: ElevatedButton(
-                onPressed: () {
-                  print('[BUTTON] Pulsante premuto! _isLoading: $_isLoading');
-                  if (!_isLoading) {
-                    _mostraSegnalazione();
-                  } else {
-                    print('[BUTTON] Bloccato perché _isLoading è true');
-                  }
-                },
+                onPressed: _isLoading ? null : _mostraSegnalazione,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black87,
                   minimumSize: const Size(double.infinity, 50),

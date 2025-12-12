@@ -239,7 +239,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                           // Dropdown Priorità
                           DropdownButtonFormField<String>(
                             decoration: _inputDecoration("Priorità Incidente"),
-                            value: _prioritaSelezionata,
+                            initialValue: _prioritaSelezionata,
                             items: _prioritaIncidente.map((String priorita) {
                               return DropdownMenuItem<String>(
                                 value: priorita,

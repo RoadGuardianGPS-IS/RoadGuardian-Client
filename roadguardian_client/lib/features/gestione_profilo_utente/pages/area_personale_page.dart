@@ -66,37 +66,21 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
                     borderRadius: BorderRadius.circular(16)),
                 child: Column(
                   children: [
-                    _buildMenuTile(
-                      context,
-                      icon: Icons.person_outline,
-                      color: customPurple,
-                      title: "Informazioni personali",
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DettagliProfiloPage(utente: _utente),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1, indent: 20, endIndent: 20),
-                    _buildMenuTile(
-                      context,
-                      icon: Icons.history,
-                      color: Colors.orange,
-                      title: "Storico Segnalazioni",
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SegnalazioniPage(
-                                titolo: "Storico Segnalazioni"),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                      _buildMenuTile(
+                        context,
+                        icon: Icons.person_outline,
+                        color: customPurple,
+                        title: "Informazioni personali",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DettagliProfiloPage(utente: _utente),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                 ),
               ),
 
@@ -213,7 +197,7 @@ class DettagliProfiloPage extends StatelessWidget {
                     const Divider(),
                     _buildInfoRow("Email", utente.email),
                     const Divider(),
-                    _buildInfoRow("Telefono", utente.numeroTelefono ?? "-"),
+                    _buildInfoRow("Telefono", utente.numeroTelefono ?? ""),
                     const Divider(),
                     _buildInfoRow("Password", "••••••••"),
                   ],
@@ -380,33 +364,4 @@ class DettagliProfiloPage extends StatelessWidget {
   }
 }
 
-// ================= SEGNALAZIONI =================
-class SegnalazioniPage extends StatelessWidget {
-  final String titolo;
-  const SegnalazioniPage({super.key, required this.titolo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
-      appBar: AppBar(
-          title: Text(titolo),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          foregroundColor: Colors.black),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.assignment_late_outlined,
-                size: 80, color: Color.fromARGB(128, 128, 128, 128)),
-            SizedBox(height: 20),
-            Text("Nessuna segnalazione",
-                style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey)),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// Storico segnalazioni rimosso: se necessario riaggiungere in futuro

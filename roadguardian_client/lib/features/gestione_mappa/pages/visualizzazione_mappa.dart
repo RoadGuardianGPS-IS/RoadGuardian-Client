@@ -31,8 +31,7 @@ class _MappaPageState extends State<MappaPage> {
   static final List<Marker> _persistentExtraMarkers = [];
 
   bool _showSegnalazioneVeloce = false;
-  bool _menuOpen = false;
-  Set<String> _segnalazioniNotificate = {}; // Traccia le segnalazioni già notificate
+  final Set<String> _segnalazioniNotificate = {}; // Traccia le segnalazioni già notificate
 
   @override
   void initState() {
@@ -153,6 +152,7 @@ class _MappaPageState extends State<MappaPage> {
           .createSegnalazione(userId, _posizioneUtente.latitude, _posizioneUtente.longitude,
               seriousness: 'high', description: 'Segnalazione veloce')
           .then((ok) {
+        if (!mounted) return;
         if (ok) {
           // ricarica segnalazioni per sincronizzare
           Future.delayed(const Duration(milliseconds: 400), _caricaSegnalazioni);
@@ -172,6 +172,7 @@ class _MappaPageState extends State<MappaPage> {
           );
         }
       }).catchError((e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Errore rete: $e'),
@@ -216,13 +217,7 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-  void _vaiAllaPosizioneUtente() {
-    setState(() {
-      _posizioneUtente = napoliLatLng;
-      _mapController.move(_posizioneUtente, 16);
-    });
-    _verificaProssimitaIncidenti();
-  }
+
 
   void _verificaProssimitaIncidenti() {
     // Verifica se ci sono segnalazioni entro 3 km dalla posizione utente
