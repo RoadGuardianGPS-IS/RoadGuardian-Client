@@ -7,6 +7,8 @@ import 'package:roadguardian_client/services/api/register_input.dart';
 class ProfiloService {
   final String baseUrl = "http://10.0.2.2:8000"; // indirizzo server
   UserModel? currentUser;
+  // HTTP client (override in tests)
+  http.Client _httpClient = http.Client();
 
   // Singleton
   static final ProfiloService _instance = ProfiloService._internal();
@@ -17,9 +19,14 @@ class ProfiloService {
 
   ProfiloService._internal();
 
+  /// Allows tests to inject a mock HTTP client
+  void setHttpClient(http.Client client) {
+    _httpClient = client;
+  }
+
   // LOGIN
   Future<UserModel?> login(LoginInput input) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$baseUrl/profilo/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(input.toJson()),
@@ -38,7 +45,7 @@ class ProfiloService {
 
   // REGISTRAZIONE
   Future<UserModel?> register(RegisterInput input) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$baseUrl/profilo/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
@@ -61,7 +68,7 @@ class ProfiloService {
 
   // CANCELLA ACCOUNT - Richiede email, password e user_id per conferma
   Future<void> deleteUser(String userId, String email, String password) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$baseUrl/profilo/delete/$userId'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
@@ -89,7 +96,7 @@ class ProfiloService {
       body['password'] = user.password;
     }
 
-    final response = await http.put(
+    final response = await _httpClient.put(
       Uri.parse('$baseUrl/profilo/${user.id}'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
