@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'package:roadguardian_client/services/api/profile_service.dart';
 
+/// ModificaProfiloPage: Form per modifica dati personali dell'utente autenticato.
 class ModificaProfiloPage extends StatefulWidget {
   final UserModel user;
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:roadguardian_client/features/gestione_segnalazione/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/segnalazione_service.dart';
 
+/// DettaglioSegnalazionePage: Pagina dettagliata di una segnalazione con tutte le informazioni.
 class DettaglioSegnalazionePage extends StatefulWidget {
   final String segnalazioneId;
 
@@ -25,6 +26,11 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
   }
 
   Future<void> _caricaDati() async {
+    /// Carica i dettagli completi della segnalazione dal server utilizzando l'ID.
+    /// Scopo: Recuperare e visualizzare tutte le informazioni della segnalazione.
+    /// Parametri: Nessuno (usa widget.segnalazioneId).
+    /// Valore di ritorno: Future<void>.
+    /// Eccezioni: Eccezione generica durante fetch dai servizi (loggata e gestita).
     try {
       final dati = await _service.getDettaglioSegnalazione(
         widget.segnalazioneId,

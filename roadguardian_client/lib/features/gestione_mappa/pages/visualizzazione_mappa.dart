@@ -14,6 +14,8 @@ import 'package:roadguardian_client/services/api/profile_service.dart';
 import 'package:roadguardian_client/services/api/notification_service.dart';
 import 'package:roadguardian_client/services/api/mappa_service.dart';
 
+/// MappaPage: Mappa interattiva che visualizza segnalazioni di incidenti, localizzazione
+/// dell'utente, e permette la creazione di segnalazioni manuali/veloci con tracking.
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
 
@@ -55,6 +57,11 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   Future<void> _loadSavedPosition() async {
+    /// Carica la posizione precedentemente salvata dall'app da SharedPreferences.
+    /// Scopo: Ripristinare la locazione dell'utente al riavvio dell'app.
+    /// Parametri: Nessuno.
+    /// Valore di ritorno: Future<void>.
+    /// Eccezioni: Nessuna (fallback a napoliLatLng se non trovata).
     final prefs = await SharedPreferences.getInstance();
     final lat = prefs.getDouble('user_position_lat');
     final lng = prefs.getDouble('user_position_lng');
@@ -67,6 +74,11 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   Future<void> _savePosition(LatLng position) async {
+    /// Salva la posizione attuale dell'utente su SharedPreferences.
+    /// Scopo: Persistenza della locazione per il ripristino al riavvio.
+    /// Parametri: position (LatLng) - coordinate geografiche da salvare.
+    /// Valore di ritorno: Future<void>.
+    /// Eccezioni: Nessuna.
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('user_position_lat', position.latitude);
     await prefs.setDouble('user_position_lng', position.longitude);
@@ -79,11 +91,21 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   Future<void> _initializeNotifications() async {
+    /// Inizializza il servizio notifiche Firebase per l'app.
+    /// Scopo: Abilitare ricezione di notifiche push da Firebase Cloud Messaging.
+    /// Parametri: Nessuno.
+    /// Valore di ritorno: Future<void>.
+    /// Eccezioni: Nessuna (gestite internamente da NotificationService).
     await _notificationService.initialize();
     debugPrint('🔔 Notifiche inizializzate. Token: ${_notificationService.fcmToken}');
   }
 
   void _startPositionUpdateTimer() {
+    /// Avvia un timer periodico che invia la posizione dell'utente al server ogni 30 sec.
+    /// Scopo: Mantener sincronizzata la localizzazione del server con l'app.
+    /// Parametri: Nessuno.
+    /// Valore di ritorno: void.
+    /// Eccezioni: Nessuna.
 
     _sendPositionToServer();
 
@@ -95,6 +117,11 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   Future<void> _sendPositionToServer() async {
+    /// Invia la posizione attuale dell'utente e token FCM al server backend.
+    /// Scopo: Sincronizzare localizzazione per segnalazioni e notifiche.
+    /// Parametri: Nessuno (usa _posizioneUtente e _notificationService.fcmToken).
+    /// Valore di ritorno: Future<void>.
+    /// Eccezioni: Nessuna (errori loggati tramite debugPrint).
     final fcmToken = _notificationService.fcmToken;
 
     if (fcmToken == null) {
@@ -115,6 +142,11 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   Future<void> _caricaSegnalazioni() async {
+    /// Carica tutte le segnalazioni attive dal server e le visualizza sulla mappa.
+    /// Scopo: Aggiornare la lista di incidenti visibili sulla mappa in tempo reale.
+    /// Parametri: Nessuno.
+    /// Valore di ritorno: Future<void>.
+    /// Eccezioni: Nessuna (errori gestiti e loggati, fallback a lista vuota).
     if (mounted) {
       setState(() {
         _isLoadingSegnalazioni = true;
@@ -146,6 +178,11 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   void _vaiASegnalazioneManuale() {
+    /// Naviga alla pagina di segnalazione manuale con le coordinate attuali.
+    /// Scopo: Aprire il form per creare una segnalazione manuale con localizzazione.
+    /// Parametri: Nessuno (usa _posizioneUtente).
+    /// Valore di ritorno: void.
+    /// Eccezioni: Nessuna.
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -171,6 +208,11 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   void aggiungiMarker(LatLng posizione, {String? segnalazioneId}) {
+    /// Aggiunge un marker alla mappa associandolo a una segnalazione.
+    /// Scopo: Tracciare quali marker sono associati a segnalazioni create manualmente.
+    /// Parametri: posizione (LatLng) - coordinate; segnalazioneId (String?) - ID della segnalazione.
+    /// Valore di ritorno: void.
+    /// Eccezioni: Nessuna.
     final markerKey = '${posizione.latitude}_${posizione.longitude}';
     if (segnalazioneId != null) {
       _manualMarkerIds[markerKey] = segnalazioneId;
@@ -178,6 +220,11 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   void _toggleSegnalazioneVeloce() {
+    /// Attiva/disattiva la modalità segnalazione veloce con autenticazione.
+    /// Scopo: Permettere segnalazione rapida di incidenti solo agli utenti loggati.
+    /// Parametri: Nessuno.
+    /// Valore di ritorno: void.
+    /// Eccezioni: Mostra SnackBar di errore se utente non autenticato.
 
     if (_profiloService.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(

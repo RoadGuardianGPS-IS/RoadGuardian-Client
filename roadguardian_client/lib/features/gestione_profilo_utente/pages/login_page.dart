@@ -5,6 +5,7 @@ import 'area_personale_page.dart';
 import 'register_page.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 
+/// LoginPage: Form di autenticazione per accesso all'app con email e password.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -26,6 +27,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _verificaSessione() {
+    /// Verifica se esiste una sessione utente attiva e naviga di conseguenza.
+    /// Scopo: Reindirizzare automaticamente utenti autenticati all'area personale.
+    /// Parametri: Nessuno (usa _service.currentUser).
+    /// Valore di ritorno: void.
+    /// Eccezioni: Nessuna.
 
     if (_service.currentUser != null) {
       Future.microtask(() {
@@ -43,6 +49,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login() async {
+    /// Autentica l'utente con email e password presso il backend.
+    /// Scopo: Validare credenziali e stabilire sessione utente autenticata.
+    /// Parametri: Nessuno (usa emailController e passwordController).
+    /// Valore di ritorno: void (Future asincrono).
+    /// Eccezioni: Mostra SnackBar con messaggio di errore se login fallisce.
     setState(() => loading = true);
 
     try {

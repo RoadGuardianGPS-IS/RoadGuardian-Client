@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:roadguardian_client/services/api/profile_service.dart';
 
+/// SegnalazioneVelocePage: Interfaccia rapida per segnalare incidenti con geolocalizzazione automatica.
 class SegnalazioneVelocePage extends StatefulWidget {
   final Function(LatLng) aggiungiMarkerCallback;
 
@@ -34,6 +35,11 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
   }
 
   void _verificaAutenticazione() {
+    /// Verifica se l'utente è autenticato e mostra errore se assente.
+    /// Scopo: Garantire che solo utenti loggati possano fare segnalazioni veloci.
+    /// Parametri: Nessuno (usa _profiloService.currentUser).
+    /// Valore di ritorno: void.
+    /// Eccezioni: Mostra SnackBar e naviga indietro se non autenticato.
 
     if (_profiloService.currentUser == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,6 +54,10 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
             ),
           );
           Navigator.pop(context);
+        }
+      });
+    }
+  }
         }
       });
     }

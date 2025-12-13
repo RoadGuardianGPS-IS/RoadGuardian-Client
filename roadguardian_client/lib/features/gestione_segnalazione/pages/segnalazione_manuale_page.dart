@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:roadguardian_client/services/api/profile_service.dart';
 
+/// SegnalazioneManualePage: Form completo per creazione segnalazione manuale con categoria e priorità.
 class SegnalazioneManualePage extends StatefulWidget {
 
   final double latitude;

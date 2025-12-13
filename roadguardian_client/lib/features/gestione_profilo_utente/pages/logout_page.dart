@@ -3,6 +3,7 @@ import 'login_page.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 import 'package:roadguardian_client/services/api/profile_service.dart';
 
+/// LogoutPage: Pagina di conferma logout con reindirizzamento a login.
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
 

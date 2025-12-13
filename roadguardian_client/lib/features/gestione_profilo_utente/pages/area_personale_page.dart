@@ -6,6 +6,7 @@ import 'package:roadguardian_client/services/api/profile_service.dart';
 import '../models/user_model.dart';
 import 'modifica_profilo_page.dart';
 
+/// AreaPersonalePage: Dashboard personale con accesso a informazioni profilo, modifica e logout.
 class AreaPersonalePage extends StatefulWidget {
   final UserModel user;
   const AreaPersonalePage({super.key, required this.user});
@@ -26,6 +27,11 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
   }
 
   void _caricaDati() {
+    /// Carica i dati dell'utente passato come parametro nel state.
+    /// Scopo: Inizializzare le informazioni utente e completare il caricamento della pagina.
+    /// Parametri: Nessuno (usa widget.user).
+    /// Valore di ritorno: void.
+    /// Eccezioni: Nessuna.
     _utente = widget.user;
     setState(() {
       _isLoading = false;

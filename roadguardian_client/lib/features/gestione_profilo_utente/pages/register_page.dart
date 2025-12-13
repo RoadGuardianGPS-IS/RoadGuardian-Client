@@ -6,6 +6,7 @@ import 'package:roadguardian_client/services/api/register_input.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 import 'login_page.dart';
 
+/// RegisterPage: Form di registrazione con validazione password secondo criteri di sicurezza.
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -28,6 +29,11 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureConfirmPassword = true;
 
   bool _isPasswordValid(String password) {
+    /// Valida la password secondo criteri di sicurezza: lunghezza 8-14, maiuscole, numeri e caratteri speciali.
+    /// Scopo: Garantire password robuste durante la registrazione.
+    /// Parametri: password (String) - password da validare.
+    /// Valore di ritorno: bool - true se password valida, false altrimenti.
+    /// Eccezioni: Nessuna.
 
     if (password.length < 8 || password.length > 14) {
       return false;
