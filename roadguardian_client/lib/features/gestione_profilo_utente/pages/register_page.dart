@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import '../models/user_model.dart';
-import 'package:roadguardian_client/services/api/mock_profile_service.dart';
-import 'area_personale_page.dart';
+import 'package:roadguardian_client/features/gestione_profilo_utente/models/user_model.dart';
+import 'package:roadguardian_client/services/api/profile_service.dart';
+import 'package:roadguardian_client/services/login_input.dart';
+import 'package:roadguardian_client/services/api/register_input.dart';
+import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
 import 'login_page.dart';
 
+/// RegisterPage: Form di registrazione con validazione password secondo criteri di sicurezza.
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -16,65 +19,166 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController surnameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
-  final MockProfileService _service = MockProfileService();
+  final ProfiloService _service = ProfiloService();
   bool loading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
-  final RegExp _emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-  final RegExp _italianPhoneRegExp = RegExp(r'^3\d{9}$');
+  bool _isPasswordValid(String password) {
+    /// Valida la password secondo criteri di sicurezza: lunghezza 8-14, maiuscole, numeri e caratteri speciali.
+    /// Scopo: Garantire password robuste durante la registrazione.
+    /// Parametri: password (String) - password da validare.
+    /// Valore di ritorno: bool - true se password valida, false altrimenti.
+    /// Eccezioni: Nessuna.
 
-  void _register() {
+    if (password.length < 8 || password.length > 14) {
+      return false;
+    }
+
+    if (!password.contains(RegExp(r'[A-Z]'))) {
+      return false;
+    }
+
+    if (!password.contains(RegExp(r'[0-9]'))) {
+      return false;
+    }
+
+    final specialCharacters = RegExp(r'[!@#$%^&*()_+\-=\[\]{};:".<>?/\\|`~]');
+    if (!password.contains(specialCharacters)) {
+      return false;
+    }
+    return true;
+  }
+
+  void _register() async {
     String nome = nameController.text.trim();
     String cognome = surnameController.text.trim();
     String email = emailController.text.trim();
     String password = passwordController.text;
     String confirmPassword = confirmPasswordController.text;
-    String phone = phoneController.text.trim();
+    String phoneInput = phoneController.text.trim();
+    String phone = phoneInput.isEmpty ? "" : "+39$phoneInput";
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Le password non corrispondono')));
-      return;
-    }
-
-    if (!_emailRegExp.hasMatch(email)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Inserisci un indirizzo email valido')));
-      return;
-    }
-
-    if (phone.isNotEmpty && !_italianPhoneRegExp.hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Numero di telefono non valido (es. 3331234567)')));
+        const SnackBar(content: Text('Le password non corrispondono')),
+      );
+      return;
+    }
+
+    if (!_isPasswordValid(password)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La password deve contenere: 8-14 caratteri, almeno 1 maiuscolo, 1 numero e 1 carattere speciale',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (nome.isEmpty || cognome.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Compila tutti i campi obbligatori')),
+      );
+      return;
+    }
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inserisci la email')),
+      );
+      return;
+    }
+
+    if (phoneInput.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inserisci il numero di telefono')),
+      );
       return;
     }
 
     setState(() => loading = true);
 
-    UserModel newUser = UserModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      nome: nome,
-      cognome: cognome,
-      email: email,
-      password: password,
-      numeroTelefono: phone.isEmpty ? null : phone,
-    );
+    try {
+      final check = await _service.login(LoginInput(email: email, password: '__check_email__'));
+      if (check == null) {
 
-    _service.registerUser(newUser);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email già registrata')),
+          );
+          setState(() => loading = false);
+        }
+        return;
+      } else {
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email già registrata')),
+          );
+          setState(() => loading = false);
+        }
+        return;
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (!msg.contains('404')) {
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Errore verifica email: $e')),
+          );
+          setState(() => loading = false);
+        }
+        return;
+      }
+
+    }
+
+    try {
+      final UserModel? user = await _service.register(
+        RegisterInput(
+          firstName: nome,
+          lastName: cognome,
+          email: email,
+          password: password,
+          numTel: phone.isEmpty ? null : phone, // num_tel opzionale
+        ),
+      );
+
+      if (!mounted) return;
+
+      if (user != null) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const MappaPage()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e.toString().toLowerCase();
+      if (msg.contains('email') && (msg.contains('gi') || msg.contains('gia') || msg.contains('already') || msg.contains('exists') || msg.contains('esistente'))) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email già registrata')),);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore registrazione: $e')),
+        );
+      }
+    }
+
+    if (!mounted) return;
     setState(() => loading = false);
-
-    // Login automatico dopo registrazione
-    _service.currentUser = newUser;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => AreaPersonalePage(user: newUser)),
-      (route) => false,
-    );
   }
 
   void _goToLogin() {
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -91,8 +195,10 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              const Text("REGISTRAZIONE",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text(
+                "REGISTRAZIONE",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -103,48 +209,82 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Column(
                   children: [
                     TextField(
-                      key: const Key('register_nome'),
                       controller: nameController,
                       decoration: const InputDecoration(
-                          labelText: "Nome", border: OutlineInputBorder()),
+                        labelText: "Nome",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      key: const Key('register_cognome'),
                       controller: surnameController,
                       decoration: const InputDecoration(
-                          labelText: "Cognome", border: OutlineInputBorder()),
+                        labelText: "Cognome",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      key: const Key('register_email'),
                       controller: emailController,
                       decoration: const InputDecoration(
-                          labelText: "Email", border: OutlineInputBorder()),
+                        labelText: "Email",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      key: const Key('register_telefono'),
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
-                          labelText: "Telefono (opzionale)", border: OutlineInputBorder()),
+                        prefixText: "+39 ",
+                        labelText: "Telefono",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      key: const Key('register_password'),
                       controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                          labelText: "Password", border: OutlineInputBorder()),
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: "Password",
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      key: const Key('register_confirm_password'),
                       controller: confirmPasswordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                          labelText: "Conferma Password", border: OutlineInputBorder()),
+                      obscureText: _obscureConfirmPassword,
+                      decoration: InputDecoration(
+                        labelText: "Conferma Password",
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -157,17 +297,19 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: loading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           "REGISTRATI",
                           style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                 ),
               ),
@@ -179,13 +321,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: _goToLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     "TORNA AL LOGIN",
                     style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

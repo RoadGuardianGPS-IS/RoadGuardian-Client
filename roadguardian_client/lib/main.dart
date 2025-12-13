@@ -1,10 +1,39 @@
 import 'package:flutter/material.dart';
-// import 'features/gestione_profilo_utente/models/user_model.dart'; // RIMOSSO PER BRANCH MAPPA
-import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
-// import 'features/gestione_profilo_utente/pages/modifica_profilo_page.dart'; // RIMOSSO PER BRANCH MAPPA
-// import 'features/gestione_profilo_utente/pages/area_personale_page.dart'; // RIMOSSO PER BRANCH MAPPA
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:roadguardian_client/services/api/notification_service.dart';
 
-void main() {
+import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('📬 Notifica ricevuta in background: ${message.messageId}');
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+
+    await Firebase.initializeApp();
+    debugPrint('🔥 Firebase inizializzato');
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Inizializza il servizio notifiche in anticipo, così è pronto anche nelle
+    // schermate che possono essere presentate prima della Mappa (es. Login).
+    try {
+      await NotificationService().initialize();
+      debugPrint('🔔 NotificationService inizializzato da main');
+    } catch (e) {
+      debugPrint('❌ Errore inizializzazione NotificationService: $e');
+    }
+  } catch (e) {
+    debugPrint('❌ Errore inizializzazione Firebase: $e');
+    debugPrint('⚠️ Assicurati di aver configurato google-services.json');
+  }
+  
   runApp(const MyApp());
 }
 
@@ -13,14 +42,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Utente di default rimosso perché UserModel non esiste in questo branch
+
 
     return MaterialApp(
       title: 'RoadGuardian',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      // Apri direttamente la mappa all'avvio
+
       home: const MappaPage(),
     );
   }

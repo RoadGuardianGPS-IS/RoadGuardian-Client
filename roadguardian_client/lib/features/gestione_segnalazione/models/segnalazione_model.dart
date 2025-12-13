@@ -28,25 +28,34 @@ class SegnalazioneModel {
   });
 
   factory SegnalazioneModel.fromJson(Map<String, dynamic> json) {
+
+    final String idValue = json['_id'] ?? json['id'] ?? '';
+    final dynamic latValue =
+        json['incident_latitude'] ?? json['latitude'] ?? 40.8518;
+    final dynamic lonValue =
+        json['incident_longitude'] ?? json['longitude'] ?? 14.2681;
+
     return SegnalazioneModel(
-      id: json['id'] ?? '',
+      id: idValue,
       titolo: json['titolo'] ?? '',
-      categoria: json['categoria'] ?? 'Altro',
-      descrizione: json['descrizione'] ?? '',
+      categoria: json['category'] ?? json['categoria'] ?? 'Altro',
+      descrizione: json['description'] ?? json['descrizione'] ?? 'Nessuna descrizione disponibile',
       indirizzo: json['indirizzo'] ?? '',
-      latitude: (json['latitude'] is String)
-          ? double.tryParse(json['latitude']) ?? 40.8518
-          : (json['latitude'] ?? 40.8518),
-      longitude: (json['longitude'] is String)
-          ? double.tryParse(json['longitude']) ?? 14.2681
-          : (json['longitude'] ?? 14.2681),
+      latitude: (latValue is String)
+          ? double.tryParse(latValue) ?? 40.8518
+          : (latValue is num ? latValue.toDouble() : 40.8518),
+      longitude: (lonValue is String)
+          ? double.tryParse(lonValue) ?? 14.2681
+          : (lonValue is num ? lonValue.toDouble() : 14.2681),
       dataOra: DateTime.tryParse(json['data_ora'] ?? '') ?? DateTime.now(),
-      gravita: json['gravita'] ?? 'Bassa',
+      gravita: json['seriousness'] ?? json['gravita'] ?? 'low',
       stato: json['stato'] ?? 'Aperta',
       immagineUrl: json['immagine_url'],
-      lineeGuida: (json['linee_guida'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
+      lineeGuida:
+          (json['linee_guida'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

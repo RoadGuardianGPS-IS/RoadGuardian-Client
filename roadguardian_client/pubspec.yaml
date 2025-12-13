@@ -24,16 +24,37 @@ dependencies:
   # Per ottenere la posizione GPS
   geolocator: ^10.1.0
 
-  # Permessi runtime compatibile Flutter vecchio
+  # HTTP per chiamate al backend
+  http: ^0.13.6
 
+  # JSON Annotation per serializzazione
+  json_annotation: ^4.9.0
+
+  # Firebase per notifiche push
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.4
+  
+  # Local notifications per mostrare notifiche in foreground
+  flutter_local_notifications: ^18.0.1
+  
+  # Shared Preferences per salvare dati localmente
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
+
   assets:
     - assets/logo/logo_app.png
+
+# Configurazione icona app (usa un path relativo condiviso nel repo)
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"  # metti qui il file PNG condiviso nel repo

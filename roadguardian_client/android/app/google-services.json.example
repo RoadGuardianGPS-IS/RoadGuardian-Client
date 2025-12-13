@@ -1,0 +1,27 @@
+{
+  "ISTRUZIONI": "Questo è un file placeholder. Devi sostituirlo con il tuo google-services.json reale scaricato da Firebase Console.",
+  "NOTA": "Vai su https://console.firebase.google.com/ e segui le istruzioni in CONFIGURAZIONE_FIREBASE.md",
+  "ATTENZIONE": "L'app NON funzionerà per le notifiche finché non configuri Firebase correttamente!",
+  
+  "project_info": {
+    "project_number": "PLACEHOLDER",
+    "project_id": "roadguardian-placeholder",
+    "storage_bucket": "roadguardian-placeholder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "android_client_info": {
+          "package_name": "com.example.roadguardian_client"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "PLACEHOLDER_API_KEY"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}
