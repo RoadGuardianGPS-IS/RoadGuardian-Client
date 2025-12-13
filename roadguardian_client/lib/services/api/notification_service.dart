@@ -137,6 +137,11 @@ class NotificationService {
     debugPrint('🔔 Notifica locale mostrata nel notification tray');
   }
 
+  /// Mostra una notifica locale pubblica (helper per test/debug).
+  Future<void> showTestNotification(String title, String body, [String? incidentId]) async {
+    await _showLocalNotification(title, body, incidentId);
+  }
+
   void _handleNotificationClick(RemoteMessage message) {
     debugPrint('👆 Notifica cliccata');
     debugPrint('Dati: ${message.data}');

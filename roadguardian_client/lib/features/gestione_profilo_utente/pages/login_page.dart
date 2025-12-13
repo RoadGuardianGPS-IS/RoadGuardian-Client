@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:roadguardian_client/services/login_input.dart';
 import 'package:roadguardian_client/services/api/profile_service.dart';
+import 'package:roadguardian_client/services/api/notification_service.dart';
 import 'area_personale_page.dart';
 import 'register_page.dart';
 import '../../gestione_mappa/pages/visualizzazione_mappa.dart';
@@ -17,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final ProfiloService _service = ProfiloService();
+  final NotificationService _notificationService = NotificationService();
 
   bool loading = false;
 
@@ -67,10 +69,19 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email o password errata')),
-        );
+        if (!mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email o password errata')),
+          );
+        });
       } else {
+        // Non attendiamo la notifica per evitare ulteriori async gaps
+        _notificationService
+            .showTestNotification('Accesso effettuato', 'Benvenuto ${user.nome}')
+            .catchError((e) => debugPrint('Errore mostra notifica test: $e'));
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => AreaPersonalePage(user: user)),
@@ -118,7 +129,17 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const SizedBox(height: 40),
+              // Logo app
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+                child: Image.asset(
+                  'assets/logo/logo_app.png',
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 8),
               const Text(
                 "LOGIN",
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),

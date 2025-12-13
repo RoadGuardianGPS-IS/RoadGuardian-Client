@@ -704,13 +704,7 @@ class _MappaPageState extends State<MappaPage> {
                   onPressed: _centraSulMarker,
                   child: const Icon(Icons.my_location, color: Colors.white),
                 ),
-                const SizedBox(height: 12),
-                FloatingActionButton(
-                  heroTag: 'fake_incidente_menu',
-                  backgroundColor: Colors.red,
-                  onPressed: _simulaIncidente,
-                  child: const Icon(Icons.warning, color: Colors.white),
-                ),
+                
               ],
             ),
           ),

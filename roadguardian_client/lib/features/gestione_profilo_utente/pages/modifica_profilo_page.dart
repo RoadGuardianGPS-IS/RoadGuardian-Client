@@ -29,7 +29,8 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
     _nomeController = TextEditingController(text: widget.user.nome);
     _cognomeController = TextEditingController(text: widget.user.cognome);
     _telefonoController = TextEditingController(
-      text: widget.user.numeroTelefono ?? '',
+      // Rimuove eventuali trattini o spazi ricevuti dal backend per una visualizzazione pulita
+      text: (widget.user.numeroTelefono ?? '').replaceAll(RegExp(r"[^0-9+]"), ''),
     );
     _passwordController = TextEditingController(
       text: widget.user.password ?? '',
@@ -53,9 +54,9 @@ class _ModificaProfiloPageState extends State<ModificaProfiloPage> {
       nome: _nomeController.text.trim(),
       cognome: _cognomeController.text.trim(),
       email: widget.user.email, // Email fissa
-      numeroTelefono: _telefonoController.text.trim().isEmpty
+        numeroTelefono: _telefonoController.text.trim().isEmpty
           ? null
-          : _telefonoController.text.trim(),
+          : _telefonoController.text.trim().replaceAll(RegExp(r"[^0-9+]"), ''),
       password: _passwordController.text.trim().isEmpty
           ? widget.user.password
           : _passwordController.text.trim(),

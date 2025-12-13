@@ -58,11 +58,6 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
       });
     }
   }
-        }
-      });
-    }
-  }
-
   Future<void> _aggiornaPosizione() async {
     try {
       final pos = await Geolocator.getCurrentPosition(

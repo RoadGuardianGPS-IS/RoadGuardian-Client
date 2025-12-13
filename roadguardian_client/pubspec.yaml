@@ -50,6 +50,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/logo/logo_app.png
+
 # Configurazione icona app (usa un path relativo condiviso nel repo)
 flutter_launcher_icons:
   android: true

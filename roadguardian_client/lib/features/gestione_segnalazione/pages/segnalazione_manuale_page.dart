@@ -107,9 +107,12 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         "Incendio veicolo": "ostacolo sulla strada",
       };
 
+      // Il server accetta solo il valore 'high' per il campo `seriousness`.
+      // Per evitare 422, inviamo sempre 'high' (server-side dovrebbe essere aggiornato
+      // per gestire più livelli di gravità in futuro).
       final Map<String, String> prioritaMapping = {
-        "bassa": "low",
-        "media": "medium",
+        "bassa": "high",
+        "media": "high",
         "alta": "high",
       };
 

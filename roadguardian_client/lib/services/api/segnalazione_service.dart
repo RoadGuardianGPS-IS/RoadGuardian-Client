@@ -46,7 +46,32 @@ class SegnalazioneService {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+        // Proviamo a recuperare le linee guida da endpoint dedicato.
+        try {
+          final guideResp = await http.get(
+            Uri.parse('$baseUrl/segnalazione/lineeguida/$id'),
+            headers: {'Content-Type': 'application/json'},
+          );
+
+          if (guideResp.statusCode == 200) {
+            final String raw = guideResp.body;
+            // Se il server restituisce un testo singolo, dividiamolo in frasi per mostrare i punti.
+            final List<String> list = raw
+                .split(RegExp(r'\.|\n'))
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .map((s) => s.endsWith('.') ? s : '$s.')
+                .toList();
+            data['linee_guida'] = list;
+          } else {
+            data['linee_guida'] = <String>[];
+          }
+        } catch (e) {
+          data['linee_guida'] = <String>[];
+        }
+
         return SegnalazioneModel.fromJson(data);
       } else {
         throw Exception(
