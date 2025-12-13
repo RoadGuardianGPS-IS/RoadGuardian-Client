@@ -51,15 +51,22 @@ class NotificationService {
         debugPrint('🔄 Token FCM aggiornato: $newToken');
       });
 
+      // Listener per messaggi in foreground (app aperta)
+      // Nota: questo listener rimane attivo per tutta la vita dell'app
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('🎯 [FCM FOREGROUND] Messaggio ricevuto in tempo reale');
         debugPrint('   Titolo: ${message.notification?.title}');
         debugPrint('   Corpo: ${message.notification?.body}');
         debugPrint('   Dati: ${message.data}');
         _handleForegroundMessage(message);
+      }, onError: (error) {
+        debugPrint('❌ [FCM FOREGROUND] Errore listener: $error');
       });
 
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationClick);
+      // Listener per messaggi quando l'app viene aperta da una notifica
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationClick, onError: (error) {
+        debugPrint('❌ [FCM OPENED] Errore listener: $error');
+      });
 
       RemoteMessage? initialMessage =
           await _messaging.getInitialMessage();

@@ -50,6 +50,7 @@ class _MappaPageState extends State<MappaPage> {
     _loadSavedPosition();
     _initializeNotifications();
     _startPositionUpdateTimer();
+    debugPrint('✅ [MappaPage] initState completato - NotificationService token: ${_notificationService.fcmToken}');
     // Carica le segnalazioni subito dopo l'inizializzazione
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _caricaSegnalazioni();
@@ -91,13 +92,12 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   Future<void> _initializeNotifications() async {
-    /// Inizializza il servizio notifiche Firebase per l'app.
-    /// Scopo: Abilitare ricezione di notifiche push da Firebase Cloud Messaging.
+    /// Notifiche già inizializzate in main.dart
+    /// Scopo: Verificare che il token sia disponibile.
     /// Parametri: Nessuno.
     /// Valore di ritorno: Future<void>.
-    /// Eccezioni: Nessuna (gestite internamente da NotificationService).
-    await _notificationService.initialize();
-    debugPrint('🔔 Notifiche inizializzate. Token: ${_notificationService.fcmToken}');
+    /// Eccezioni: Nessuna.
+    debugPrint('🔔 Notifiche controllate. Token: ${_notificationService.fcmToken}');
   }
 
   void _startPositionUpdateTimer() {
