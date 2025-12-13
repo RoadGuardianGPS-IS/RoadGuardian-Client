@@ -39,7 +39,7 @@ class SegnalazioneModel {
       id: idValue,
       titolo: json['titolo'] ?? '',
       categoria: json['category'] ?? json['categoria'] ?? 'Altro',
-      descrizione: json['descrizione'] ?? '',
+      descrizione: json['description'] ?? json['descrizione'] ?? 'Nessuna descrizione disponibile',
       indirizzo: json['indirizzo'] ?? '',
       latitude: (latValue is String)
           ? double.tryParse(latValue) ?? 40.8518
