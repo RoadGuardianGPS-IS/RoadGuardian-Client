@@ -5,7 +5,6 @@ import 'package:roadguardian_client/features/gestione_segnalazione/models/segnal
 class SegnalazioneService {
   final String baseUrl = "http://10.0.2.2:8000"; // indirizzo server
 
-  // Singleton
   static final SegnalazioneService _instance = SegnalazioneService._internal();
 
   factory SegnalazioneService() {
@@ -14,7 +13,6 @@ class SegnalazioneService {
 
   SegnalazioneService._internal();
 
-  // OTTIENI SEGNALAZIONI ATTIVE DAL SERVER
   Future<List<SegnalazioneModel>> getSegnalazioniAttive() async {
     try {
       final response = await http.get(
@@ -40,7 +38,6 @@ class SegnalazioneService {
     }
   }
 
-  // OTTIENI DETTAGLI SEGNALAZIONE
   Future<SegnalazioneModel> getDettaglioSegnalazione(String id) async {
     try {
       final response = await http.get(
@@ -61,7 +58,6 @@ class SegnalazioneService {
     }
   }
 
-  // CREA NUOVA SEGNALAZIONE (usata da segnalazione manuale e veloce)
   Future<bool> createSegnalazione(
     String userId,
     double latitude,

@@ -88,7 +88,6 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
 
               const SizedBox(height: 40),
 
-              // LOGOUT
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -122,7 +121,6 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
 
               const SizedBox(height: 12),
 
-              // BOTTONE TORNA ALLA MAPPA
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -177,7 +175,6 @@ class _AreaPersonalePageState extends State<AreaPersonalePage> {
   }
 }
 
-// ================= DETTAGLI PROFILO =================
 class DettagliProfiloPage extends StatelessWidget {
   final UserModel utente;
   const DettagliProfiloPage({super.key, required this.utente});
@@ -222,7 +219,6 @@ class DettagliProfiloPage extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // Modifica dati
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -254,7 +250,6 @@ class DettagliProfiloPage extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // CANCELLAZIONE ACCOUNT
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -262,7 +257,6 @@ class DettagliProfiloPage extends StatelessWidget {
                   onPressed: () async {
                     final ctx = context;
 
-                    // Dialog per chiedere la password di conferma
                     final TextEditingController passwordController =
                         TextEditingController();
                     final bool? conferma = await showDialog<bool>(
@@ -355,7 +349,6 @@ class DettagliProfiloPage extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // INDIETRO
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -401,4 +394,3 @@ class DettagliProfiloPage extends StatelessWidget {
   }
 }
 
-// Storico segnalazioni rimosso: se necessario riaggiungere in futuro

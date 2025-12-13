@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// Importa il model dalla nuova posizione in gestione_segnalazione
+
 import 'package:roadguardian_client/features/gestione_segnalazione/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
 
@@ -72,7 +72,7 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // FOTO
+
             Container(
               width: double.infinity,
               height: 250,
@@ -90,7 +90,6 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                   : const Icon(Icons.map, size: 80, color: Colors.grey),
             ),
 
-            // CARD CONTENUTO
             Transform.translate(
               offset: const Offset(0, -20),
               child: Container(
@@ -112,7 +111,7 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Titolo
+
                     Text(
                       _segnalazione!.titolo.toUpperCase(),
                       style: TextStyle(
@@ -123,7 +122,6 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                     ),
                     const SizedBox(height: 5),
 
-                    // Categoria
                     Text(
                       "Categoria: ${_segnalazione!.categoria}",
                       style: const TextStyle(
@@ -134,14 +132,12 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                     ),
                     const SizedBox(height: 5),
 
-                    // Data
                     Text(
                       "${_segnalazione!.dataOra.day}/${_segnalazione!.dataOra.month}/${_segnalazione!.dataOra.year} - ${_segnalazione!.dataOra.hour}:${_segnalazione!.dataOra.minute}",
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     const SizedBox(height: 15),
 
-                    // Badge Gravità e Stato
                     Row(
                       children: [
                         _buildBadge(_segnalazione!.stato, Colors.blue),
@@ -155,7 +151,6 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
 
                     const Divider(height: 30),
 
-                    // Indirizzo
                     Row(
                       children: [
                         const Icon(Icons.location_on, color: Colors.redAccent),
@@ -174,7 +169,6 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
 
                     const SizedBox(height: 20),
 
-                    // Descrizione
                     const Text(
                       "Descrizione",
                       style: TextStyle(
@@ -194,7 +188,6 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
 
                     const SizedBox(height: 30),
 
-                    // Linee Guida
                     if (_segnalazione!.lineeGuida.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -257,7 +250,6 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                       const SizedBox(height: 30),
                     ],
 
-                    // Bottone Indietro
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -288,7 +280,7 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        // Sostituito con withAlpha. 25 è circa 0.1 di opacità (0.1 * 255 = 25.5)
+
         color: color.withAlpha(25),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color),

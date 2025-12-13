@@ -15,7 +15,6 @@ class UserModel {
     this.password,
   });
 
-  // Parsing JSON dal server
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['_id'] ?? '',
@@ -27,7 +26,6 @@ class UserModel {
     );
   }
 
-  // Conversione in JSON da inviare al server
   Map<String, dynamic> toJson() {
     return {
       'first_name': nome,

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:roadguardian_client/services/api/profile_service.dart';
 
 class SegnalazioneManualePage extends StatefulWidget {
-  // Riceviamo le coordinate dalla mappa (essenziali per il backend)
+
   final double latitude;
   final double longitude;
   final String indirizzoStimato;
@@ -26,15 +26,12 @@ class SegnalazioneManualePage extends StatefulWidget {
 class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controller
   final TextEditingController _descrizioneController = TextEditingController();
 
-  // Stato
   String? _categoriaSelezionata;
   String? _prioritaSelezionata = "media";
   bool _isLoading = false;
 
-  // LE 5 CATEGORIE DA RAD
   final List<String> _categorieRAD = [
     "Tamponamento",
     "Collisione con ostacolo",
@@ -43,14 +40,11 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     "Incendio veicolo",
   ];
 
-  // PRIORITA INCIDENTE
   final List<String> _prioritaIncidente = ["bassa", "media", "alta", "critica"];
 
-  // Colori del tema
   final Color customBackground = const Color(0xFFF0F0F0);
   final Color customPurple = const Color(0xFF6561C0);
 
-  // Servizi
   final ProfiloService _profiloService = ProfiloService();
   final String baseUrl = "http://10.0.2.2:8000";
 
@@ -61,7 +55,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
   }
 
   void _verificaAutenticazione() {
-    // Verifica se l'utente è loggato all'apertura della pagina
+
     if (_profiloService.currentUser == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -80,7 +74,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     }
   }
 
-  // Invio al backend
   Future<void> _inviaSegnalazione() async {
     if (!_formKey.currentState!.validate()) return;
     if (_categoriaSelezionata == null) {
@@ -90,7 +83,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
       return;
     }
 
-    // Verifica autenticazione prima dell'invio
     if (_profiloService.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -105,7 +97,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     setState(() => _isLoading = true);
 
     try {
-      // Mappa le categorie ai valori accettati dal backend
+
       final Map<String, String> categoriaMapping = {
         "Tamponamento": "tamponamento",
         "Collisione con ostacolo": "collisione laterale",
@@ -114,7 +106,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         "Incendio veicolo": "ostacolo sulla strada",
       };
 
-      // Mappa la priorità ai valori accettati dal backend (low, medium, high)
       final Map<String, String> prioritaMapping = {
         "bassa": "low",
         "media": "medium",
@@ -122,7 +113,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         "critica": "high",
       };
 
-      // Ottieni data e ora attuali
       final now = DateTime.now();
       final dateFormat = now.toString().split(' ')[0]; // YYYY-MM-DD
       final timeFormat =
@@ -151,7 +141,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
       }
 
       if (response.statusCode == 201) {
-        // Segnalazione creata con successo
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -159,12 +149,12 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
               backgroundColor: Colors.green,
             ),
           );
-          // Chiama il callback per ricaricare le segnalazioni sulla mappa
+
           widget.onSegnalazioneConfermata?.call();
           Navigator.pop(context);
         }
       } else {
-        // Errore dal server
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -212,7 +202,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- SEZIONE 1: FORM DATI ---
+
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -222,7 +212,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Dropdown Categoria
+
                           DropdownButtonFormField<String>(
                             decoration: _inputDecoration("Tipo di Incidente"),
                             initialValue: _categoriaSelezionata,
@@ -240,7 +230,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Dropdown Priorità
                           DropdownButtonFormField<String>(
                             decoration: _inputDecoration("Priorità Incidente"),
                             initialValue: _prioritaSelezionata,
@@ -258,7 +247,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Descrizione
                           TextFormField(
                             controller: _descrizioneController,
                             maxLines: 4,
@@ -274,7 +262,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Coordinate (Sola lettura)
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
@@ -325,7 +312,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
                     ),
                     const SizedBox(height: 40),
 
-                    // --- BOTTONE INVIO ---
                     SizedBox(
                       width: double.infinity,
                       height: 55,
@@ -354,7 +340,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     );
   }
 
-  // Stile Campi Input (Coerente con RegisterPage)
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
@@ -373,7 +358,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     );
   }
 
-  // Formattazione priorità per visualizzazione
   String _formatPriority(String priority) {
     switch (priority) {
       case 'bassa':

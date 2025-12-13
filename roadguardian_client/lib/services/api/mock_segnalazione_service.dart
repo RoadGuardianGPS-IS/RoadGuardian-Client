@@ -30,7 +30,7 @@ class MockSegnalazioneService {
       "immagine_url": null,
       "linee_guida": ["Rallentare.", "Segnalare ostacolo."],
     },
-    // ... altri dati ...
+
   ];
 
   Future<List<SegnalazioneModel>> getSegnalazioniAttive() async {

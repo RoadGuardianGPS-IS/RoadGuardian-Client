@@ -28,8 +28,7 @@ class SegnalazioneModel {
   });
 
   factory SegnalazioneModel.fromJson(Map<String, dynamic> json) {
-    // Supporta sia il formato del backend mappa (_id, incident_latitude, incident_longitude)
-    // sia il formato del backend segnalazione (id, latitude, longitude)
+
     final String idValue = json['_id'] ?? json['id'] ?? '';
     final dynamic latValue =
         json['incident_latitude'] ?? json['latitude'] ?? 40.8518;

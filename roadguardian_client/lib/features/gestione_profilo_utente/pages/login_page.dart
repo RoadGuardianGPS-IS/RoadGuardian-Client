@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _verificaSessione() {
-    // Se esiste una sessione attiva, reindirizza all'area personale
+
     if (_service.currentUser != null) {
       Future.microtask(() {
         if (mounted) {

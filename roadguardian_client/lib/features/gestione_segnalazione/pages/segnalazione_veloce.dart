@@ -34,7 +34,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
   }
 
   void _verificaAutenticazione() {
-    // Verifica se l'utente è loggato all'apertura della pagina
+
     if (_profiloService.currentUser == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -62,7 +62,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
         _ultimaPosizione = LatLng(pos.latitude, pos.longitude);
       });
     } catch (e) {
-      // Se fallisce la geolocalizzazione, usa posizione di default (Napoli)
+
       setState(() {
         _ultimaPosizione = LatLng(40.8522, 14.2681);
       });
@@ -90,7 +90,6 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
       return;
     }
 
-    // Verifica nuovamente se l'utente è loggato prima dell'invio
     if (_profiloService.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -109,7 +108,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
     });
 
     try {
-      // Usa lo stesso schema della manuale (niente date/time esplicite, backend le aggiunge)
+
       final Map<String, dynamic> payload = {
         'incident_longitude': _ultimaPosizione!.longitude,
         'incident_latitude': _ultimaPosizione!.latitude,
@@ -120,7 +119,6 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
         'img_url': null,
       };
 
-      // Log in console (use debugPrint instead of print)
       debugPrint(
         'Segnalazione veloce → POST $baseUrl/segnalazione/creasegnalazione/${_profiloService.currentUser!.id}',
       );
@@ -144,28 +142,26 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
       }
 
       if (response.statusCode == 201) {
-        // Segnalazione creata con successo
+
         if (mounted) {
           setState(() {
             _mostraNotifica = true;
           });
 
-          // Aggiungi marker sulla mappa
           widget.aggiungiMarkerCallback(_ultimaPosizione!);
 
-          // Nascondi notifica dopo 1.5 secondi
           Future.delayed(const Duration(milliseconds: 1500), () {
             if (mounted) {
               setState(() {
                 _mostraNotifica = false;
               });
-              // Torna alla mappa dopo aver mostrato la notifica
+
               Navigator.pop(context);
             }
           });
         }
       } else {
-        // Errore dal server: mostro status e body
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -197,7 +193,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
       appBar: AppBar(title: const Text("Nuova Segnalazione")),
       body: Stack(
         children: [
-          // MAPPA SOTTO
+
           if (_ultimaPosizione != null)
             FlutterMap(
               options: MapOptions(center: _ultimaPosizione, zoom: 15.0),
@@ -209,7 +205,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
                 ),
                 MarkerLayer(
                   markers: [
-                    // --- NUOVO STILE MARKER (Uniformato) ---
+
                     Marker(
                       point: _ultimaPosizione!,
                       width: 100,
@@ -217,7 +213,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
                       builder: (ctx) => Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Alone rosso trasparente
+
                           Container(
                             width: 80,
                             height: 80,
@@ -227,7 +223,7 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
                               border: Border.all(color: Colors.red, width: 2.0),
                             ),
                           ),
-                          // Cerchio centrale pieno
+
                           Container(
                             width: 40,
                             height: 40,
@@ -252,7 +248,6 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
           else
             const Center(child: CircularProgressIndicator()),
 
-          // NOTIFICA ANIMATA
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
@@ -285,7 +280,6 @@ class _SegnalazioneVelocePageState extends State<SegnalazioneVelocePage> {
             ),
           ),
 
-          // PULSANTE AZIONE
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(

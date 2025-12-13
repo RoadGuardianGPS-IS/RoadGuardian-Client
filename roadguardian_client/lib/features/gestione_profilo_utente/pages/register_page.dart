@@ -28,19 +28,19 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureConfirmPassword = true;
 
   bool _isPasswordValid(String password) {
-    // Verifica lunghezza (8-14 caratteri)
+
     if (password.length < 8 || password.length > 14) {
       return false;
     }
-    // Verifica almeno un maiuscolo
+
     if (!password.contains(RegExp(r'[A-Z]'))) {
       return false;
     }
-    // Verifica almeno un numero
+
     if (!password.contains(RegExp(r'[0-9]'))) {
       return false;
     }
-    // Verifica almeno un carattere speciale
+
     final specialCharacters = RegExp(r'[!@#$%^&*()_+\-=\[\]{};:".<>?/\\|`~]');
     if (!password.contains(specialCharacters)) {
       return false;
@@ -98,13 +98,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => loading = true);
 
-    // Controllo preventivo: verifichiamo se l'email esiste già usando l'endpoint di login
-    // (invio una password fittizia). Se la risposta è 401 (ritorna null) o 200,
-    // significa che l'email è presente. Se il server risponde 404 allora l'email non esiste.
     try {
       final check = await _service.login(LoginInput(email: email, password: '__check_email__'));
       if (check == null) {
-        // 401 -> utente esiste ma password errata
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Email già registrata')),
@@ -113,7 +110,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
         return;
       } else {
-        // login riuscito (molto improbabile con password fittizia) -> email esiste
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Email già registrata')),
@@ -125,7 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } catch (e) {
       final msg = e.toString();
       if (!msg.contains('404')) {
-        // Se errore diverso da 404 (utente non trovato), mostriamo errore e interrompiamo
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Errore verifica email: $e')),
@@ -134,7 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
         return;
       }
-      // se è 404 -> email non trovata, procediamo con la registrazione
+
     }
 
     try {

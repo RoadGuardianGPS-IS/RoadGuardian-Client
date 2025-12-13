@@ -2,7 +2,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-/// Servizio per gestire le notifiche push con Firebase Cloud Messaging
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -13,16 +12,13 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   String? _fcmToken;
 
-  /// Ottieni il token FCM corrente
   String? get fcmToken => _fcmToken;
 
-  /// Inizializza Firebase Messaging e richiedi i permessi
   Future<void> initialize() async {
     try {
-      // Inizializza local notifications
+
       await _initializeLocalNotifications();
 
-      // Richiedi permessi per le notifiche (iOS e Android 13+)
       NotificationSettings settings = await _messaging.requestPermission(
         alert: true,
         announcement: false,
@@ -42,23 +38,18 @@ class NotificationService {
         debugPrint('❌ Permessi notifiche negati');
       }
 
-      // Ottieni il token FCM
       _fcmToken = await _messaging.getToken();
       debugPrint('📱 Token FCM: $_fcmToken');
 
-      // Listener per refresh del token
       _messaging.onTokenRefresh.listen((newToken) {
         _fcmToken = newToken;
         debugPrint('🔄 Token FCM aggiornato: $newToken');
       });
 
-      // Gestione notifiche in foreground
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
-      // Gestione notifiche quando l'app viene aperta da una notifica
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationClick);
 
-      // Controlla se l'app è stata aperta da una notifica mentre era terminata
       RemoteMessage? initialMessage =
           await _messaging.getInitialMessage();
       if (initialMessage != null) {
@@ -69,7 +60,6 @@ class NotificationService {
     }
   }
 
-  /// Inizializza le notifiche locali
   Future<void> _initializeLocalNotifications() async {
     const AndroidInitializationSettings androidSettings = 
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -85,7 +75,6 @@ class NotificationService {
       },
     );
 
-    // Crea canale di notifica per Android
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'roadguardian_alerts',
       'Avvisi Incidenti',
@@ -101,14 +90,12 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
-  /// Gestisce le notifiche ricevute quando l'app è in foreground
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('📬 Notifica ricevuta in foreground');
     debugPrint('Titolo: ${message.notification?.title}');
     debugPrint('Corpo: ${message.notification?.body}');
     debugPrint('Dati: ${message.data}');
 
-    // Mostra notifica locale nel notification tray
     if (message.notification != null) {
       _showLocalNotification(
         message.notification!.title ?? 'Notifica',
@@ -118,7 +105,6 @@ class NotificationService {
     }
   }
 
-  /// Mostra una notifica locale nel notification tray
   Future<void> _showLocalNotification(
     String title,
     String body,
@@ -151,21 +137,17 @@ class NotificationService {
     debugPrint('🔔 Notifica locale mostrata nel notification tray');
   }
 
-  /// Gestisce il click su una notifica
   void _handleNotificationClick(RemoteMessage message) {
     debugPrint('👆 Notifica cliccata');
     debugPrint('Dati: ${message.data}');
 
-    // Qui puoi navigare a una schermata specifica
-    // Per esempio, se c'è un incident_id nei dati, apri i dettagli
     final String? incidentId = message.data['incident_id'];
     if (incidentId != null) {
       debugPrint('🚨 Apri dettagli incidente: $incidentId');
-      // TODO: Navigare alla pagina dettaglio segnalazione
+
     }
   }
 
-  /// Cancella il token FCM (utile per logout)
   Future<void> deleteToken() async {
     try {
       await _messaging.deleteToken();
@@ -177,7 +159,6 @@ class NotificationService {
   }
 }
 
-/// Handler per notifiche in background (deve essere top-level function)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('📬 Notifica ricevuta in background');

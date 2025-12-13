@@ -26,7 +26,6 @@ class LogoutPage extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // Card con messaggio
               Container(
                 width: 320,
                 padding: const EdgeInsets.symmetric(
@@ -55,13 +54,12 @@ class LogoutPage extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Bottone LOGIN -> LoginPage
               SizedBox(
                 width: 320,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Cancella la sessione utente
+
                     ProfiloService().currentUser = null;
 
                     Navigator.pushAndRemoveUntil(
@@ -89,7 +87,6 @@ class LogoutPage extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Bottone TORNA ALLA MAPPA
               SizedBox(
                 width: 320,
                 height: 50,

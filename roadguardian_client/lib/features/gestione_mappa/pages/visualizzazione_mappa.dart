@@ -35,8 +35,6 @@ class _MappaPageState extends State<MappaPage> {
   static final List<Marker> _persistentExtraMarkers = [];
 
   bool _showSegnalazioneVeloce = false;
-  final Set<String> _segnalazioniNotificate =
-      {}; // Traccia le segnalazioni già notificate
 
   Timer? _positionUpdateTimer; // Timer per aggiornamento posizione ogni 30 secondi
 
@@ -56,18 +54,15 @@ class _MappaPageState extends State<MappaPage> {
     super.dispose();
   }
 
-  /// Inizializza il servizio notifiche FCM
   Future<void> _initializeNotifications() async {
     await _notificationService.initialize();
     debugPrint('🔔 Notifiche inizializzate. Token: ${_notificationService.fcmToken}');
   }
 
-  /// Avvia il timer che invia la posizione al server ogni 30 secondi
   void _startPositionUpdateTimer() {
-    // Invia subito la prima volta
+
     _sendPositionToServer();
 
-    // Poi ogni 30 secondi
     _positionUpdateTimer = Timer.periodic(
       const Duration(seconds: 30),
       (_) => _sendPositionToServer(),
@@ -75,7 +70,6 @@ class _MappaPageState extends State<MappaPage> {
     debugPrint('⏱️ Timer aggiornamento posizione avviato (ogni 30 secondi)');
   }
 
-  /// Invia la posizione corrente al server
   Future<void> _sendPositionToServer() async {
     final fcmToken = _notificationService.fcmToken;
     
@@ -128,11 +122,11 @@ class _MappaPageState extends State<MappaPage> {
           latitude: _posizioneUtente.latitude,
           longitude: _posizioneUtente.longitude,
           onSegnalazioneConfermata: () {
-            // Aggiungi il marker localmente subito
+
             aggiungiMarker(
               LatLng(_posizioneUtente.latitude, _posizioneUtente.longitude),
             );
-            // Poi ricarica le segnalazioni dal server dopo un breve delay
+
             Future.delayed(
               const Duration(milliseconds: 500),
               _caricaSegnalazioni,
@@ -184,7 +178,7 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   void _toggleSegnalazioneVeloce() {
-    // Verifica se l'utente è loggato prima di mostrare l'interfaccia
+
     if (_profiloService.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -204,13 +198,12 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   void _confermaSegnalazioneVeloce() {
-    // Aggiungi marker localmente subito
+
     aggiungiMarker(_posizioneUtente);
 
-    // Se l'utente è autenticato invia la segnalazione al server
     if (_profiloService.currentUser != null) {
       final userId = _profiloService.currentUser!.id;
-      // Non blocchiamo l'UI: invio in background
+
       _segnalazioneService
           .createSegnalazione(
             userId,
@@ -222,7 +215,7 @@ class _MappaPageState extends State<MappaPage> {
           .then((ok) {
             if (!mounted) return;
             if (ok) {
-              // ricarica segnalazioni per sincronizzare
+
               Future.delayed(
                 const Duration(milliseconds: 400),
                 _caricaSegnalazioni,
@@ -253,7 +246,7 @@ class _MappaPageState extends State<MappaPage> {
             );
           });
     } else {
-      // Utente non loggato: solo marker locale
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Segnalazione piazzata localmente (login mancante)'),
@@ -263,7 +256,6 @@ class _MappaPageState extends State<MappaPage> {
       );
     }
 
-    // Chiudi il pannello veloce
     _toggleSegnalazioneVeloce();
   }
 
@@ -281,7 +273,6 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-  // Centra la mappa sulla posizione corrente dell'utente/marker senza mostrare popup
   void _centraSulMarker() {
     if (!mounted) return;
     setState(() {
@@ -289,35 +280,12 @@ class _MappaPageState extends State<MappaPage> {
     });
   }
 
-  /// Sposta il marker della posizione utente e invia immediatamente al server
   void _aggiornaPosizioneUtente(LatLng nuovaPosizione) {
     setState(() {
       _posizioneUtente = nuovaPosizione;
     });
-    
-    // Invia immediatamente la nuova posizione al server
+
     _sendPositionToServer();
-  }
-
-  void _verificaProssimitaIncidenti() {
-    // Verifica se ci sono segnalazioni entro 3 km dalla posizione utente
-    const Distance distanceCalculator = Distance();
-
-    for (var segnalazione in _segnalazioni) {
-      final double distanzaKm = distanceCalculator.as(
-        LengthUnit.Kilometer,
-        _posizioneUtente,
-        LatLng(segnalazione.latitude, segnalazione.longitude),
-      );
-
-      // Se la distanza è <= 3 km e non è già stata notificata
-      if (distanzaKm <= 3.0 &&
-          !_segnalazioniNotificate.contains(segnalazione.id)) {
-        _segnalazioniNotificate.add(segnalazione.id);
-        _mostraPopup(segnalazione);
-        break; // Mostra solo un popup alla volta
-      }
-    }
   }
 
   void _simulaIncidente() async {
@@ -466,11 +434,11 @@ class _MappaPageState extends State<MappaPage> {
               center: _posizioneUtente,
               zoom: _currentZoom,
               onTap: (tapPosition, point) {
-                // Tap sulla mappa per spostare il marker utente
+
                 _aggiornaPosizioneUtente(point);
               },
               onLongPress: (tapPosition, point) {
-                // LongPress sulla mappa per spostare il marker utente
+
                 _aggiornaPosizioneUtente(point);
               },
             ),
@@ -479,15 +447,15 @@ class _MappaPageState extends State<MappaPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.roadguardian',
               ),
-              // Cerchio blu di 3km attorno alla posizione utente
+
               CircleLayer(
                 circles: [
                   CircleMarker(
                     point: _posizioneUtente,
                     radius: 3000, // 3 km in metri
                     useRadiusInMeter: true,
-                    color: Colors.blue.withOpacity(0.2),
-                    borderColor: Colors.blue.withOpacity(0.6),
+                    color: Colors.blue.withAlpha((0.2 * 255).toInt()),
+                    borderColor: Colors.blue.withAlpha((0.6 * 255).toInt()),
                     borderStrokeWidth: 3,
                   ),
                 ],
@@ -500,9 +468,7 @@ class _MappaPageState extends State<MappaPage> {
                     height: 70,
                     builder: (ctx) => GestureDetector(
                       onPanUpdate: (details) {
-                        // Converte il movimento in coordinate geografiche
-                        // Questa è una semplificazione, per un drag preciso
-                        // servirebbe calcolare la conversione pixel->coordinate
+
                       },
                       child: Stack(
                         alignment: Alignment.center,
@@ -645,7 +611,7 @@ class _MappaPageState extends State<MappaPage> {
                 ),
               ),
             ),
-          // Floating menu simplified: always-visible column of action buttons (no toggle)
+
           Positioned(
             bottom: 20,
             right: 10,
@@ -708,8 +674,7 @@ class _MappaPageState extends State<MappaPage> {
               ],
             ),
           ),
-          // (removed separate fake-incident Positioned; red is now in the menu column)
-          // zoom controls positioned to the left of the menu toggle
+
           Positioned(
             bottom: 20,
             right: 84,
