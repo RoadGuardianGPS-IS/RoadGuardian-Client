@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:roadguardian_client/services/api/notification_service.dart';
 
 import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
 
@@ -19,6 +20,15 @@ void main() async {
     debugPrint('🔥 Firebase inizializzato');
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Inizializza il servizio notifiche in anticipo, così è pronto anche nelle
+    // schermate che possono essere presentate prima della Mappa (es. Login).
+    try {
+      await NotificationService().initialize();
+      debugPrint('🔔 NotificationService inizializzato da main');
+    } catch (e) {
+      debugPrint('❌ Errore inizializzazione NotificationService: $e');
+    }
   } catch (e) {
     debugPrint('❌ Errore inizializzazione Firebase: $e');
     debugPrint('⚠️ Assicurati di aver configurato google-services.json');
