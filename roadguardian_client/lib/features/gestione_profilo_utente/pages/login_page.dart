@@ -77,11 +77,7 @@ class _LoginPageState extends State<LoginPage> {
           );
         });
       } else {
-        // Non attendiamo la notifica per evitare ulteriori async gaps
-        _notificationService
-            .showTestNotification('Accesso effettuato', 'Benvenuto ${user.nome}')
-            .catchError((e) => debugPrint('Errore mostra notifica test: $e'));
-
+        // Login successful - navigate to main app
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => AreaPersonalePage(user: user)),

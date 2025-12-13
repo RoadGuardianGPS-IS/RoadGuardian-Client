@@ -27,6 +27,7 @@ class MappaService {
       };
 
       debugPrint('📍 Invio posizione al server: lat=$latitude, lon=$longitude');
+      debugPrint('📱 Token FCM inviato: ${fcmToken != null ? fcmToken.substring(0, 20) + "..." : "NESSUNO"}');
 
       final response = await _httpClient.post(
         Uri.parse('$baseUrl/mappa/posizione'),

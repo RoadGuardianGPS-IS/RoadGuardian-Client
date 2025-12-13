@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -11,6 +12,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications = 
       FlutterLocalNotificationsPlugin();
   String? _fcmToken;
+  bool _notificationsEnabled = false;
 
   String? get fcmToken => _fcmToken;
 
@@ -31,11 +33,14 @@ class NotificationService {
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         debugPrint('✅ Permessi notifiche concessi');
+        _notificationsEnabled = true;
       } else if (settings.authorizationStatus ==
           AuthorizationStatus.provisional) {
         debugPrint('⚠️ Permessi notifiche provvisori');
+        _notificationsEnabled = true;
       } else {
         debugPrint('❌ Permessi notifiche negati');
+        _notificationsEnabled = false;
       }
 
       _fcmToken = await _messaging.getToken();
@@ -46,7 +51,13 @@ class NotificationService {
         debugPrint('🔄 Token FCM aggiornato: $newToken');
       });
 
-      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint('🎯 [FCM FOREGROUND] Messaggio ricevuto in tempo reale');
+        debugPrint('   Titolo: ${message.notification?.title}');
+        debugPrint('   Corpo: ${message.notification?.body}');
+        debugPrint('   Dati: ${message.data}');
+        _handleForegroundMessage(message);
+      });
 
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationClick);
 
@@ -55,6 +66,8 @@ class NotificationService {
       if (initialMessage != null) {
         _handleNotificationClick(initialMessage);
       }
+      
+      debugPrint('✅ [FCM] Listener configurati correttamente');
     } catch (e) {
       debugPrint('❌ Errore inizializzazione notifiche: $e');
     }
@@ -90,18 +103,33 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
+  /// Apri la pagina delle impostazioni di sistema per le notifiche dell'app.
+  Future<void> openNotificationSettings() async {
+    try {
+      const platform = MethodChannel('roadguardian.app/settings');
+      await platform.invokeMethod('openNotificationSettings');
+      debugPrint('Aperte impostazioni notifiche');
+    } catch (e) {
+      debugPrint('Errore apertura impostazioni: $e');
+      rethrow;
+    }
+  }
+
   void _handleForegroundMessage(RemoteMessage message) {
-    debugPrint('📬 Notifica ricevuta in foreground');
-    debugPrint('Titolo: ${message.notification?.title}');
-    debugPrint('Corpo: ${message.notification?.body}');
-    debugPrint('Dati: ${message.data}');
+    debugPrint('📬 [_handleForegroundMessage] Elaborazione notifica ricevuta in foreground');
+    debugPrint('   Titolo: ${message.notification?.title}');
+    debugPrint('   Corpo: ${message.notification?.body}');
+    debugPrint('   Dati: ${message.data}');
 
     if (message.notification != null) {
+      debugPrint('   ✅ Notifica ha titolo/corpo, mostro notifica locale');
       _showLocalNotification(
         message.notification!.title ?? 'Notifica',
         message.notification!.body ?? '',
         message.data['incident_id'],
       );
+    } else {
+      debugPrint('   ⚠️ Notifica senza titolo/corpo, ignoro');
     }
   }
 
@@ -118,6 +146,7 @@ class NotificationService {
       priority: Priority.high,
       playSound: true,
       enableVibration: true,
+      showWhen: true,
       icon: '@mipmap/ic_launcher',
       color: Color(0xFFFF0000),
     );
@@ -126,20 +155,30 @@ class NotificationService {
       android: androidDetails,
     );
 
+    // Usa ID univoco incrementale per evitare sovrascritture
+    final now = DateTime.now();
+    final notificationId = now.millisecondsSinceEpoch % 100000;
+
     await _localNotifications.show(
-      0, // ID notifica
+      notificationId,
       title,
       body,
       notificationDetails,
       payload: incidentId,
     );
 
-    debugPrint('🔔 Notifica locale mostrata nel notification tray');
+    debugPrint('🔔 Notifica locale mostrata nel notification tray (ID: $notificationId)');
   }
 
   /// Mostra una notifica locale pubblica (helper per test/debug).
+  /// Nota: le notifiche locali possono essere mostrate anche senza permessi FCM.
   Future<void> showTestNotification(String title, String body, [String? incidentId]) async {
-    await _showLocalNotification(title, body, incidentId);
+    try {
+      await _showLocalNotification(title, body, incidentId);
+    } catch (e) {
+      debugPrint('❌ Errore mostra notifica test: $e');
+      rethrow;
+    }
   }
 
   void _handleNotificationClick(RemoteMessage message) {

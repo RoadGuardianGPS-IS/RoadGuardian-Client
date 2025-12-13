@@ -107,7 +107,8 @@ class _MappaPageState extends State<MappaPage> {
     /// Valore di ritorno: void.
     /// Eccezioni: Nessuna.
 
-    _sendPositionToServer();
+    // Invia la posizione subito, ma con delay per permettere al token FCM di essere disponibile
+    Future.delayed(const Duration(milliseconds: 500), _sendPositionToServer);
 
     _positionUpdateTimer = Timer.periodic(
       const Duration(seconds: 30),
@@ -329,140 +330,7 @@ class _MappaPageState extends State<MappaPage> {
     _sendPositionToServer();
   }
 
-  void _simulaIncidente() async {
-    if (_segnalazioni.isEmpty) return;
-    final SegnalazioneModel incidente = _segnalazioni.first;
-    final LatLng centroIncidente = LatLng(
-      incidente.latitude,
-      incidente.longitude,
-    );
-
-    final double latDiff = centroIncidente.latitude - _posizioneUtente.latitude;
-    final double lngDiff =
-        centroIncidente.longitude - _posizioneUtente.longitude;
-
-    const double distanzaPerc = 1.0;
-    final double latStep = latDiff * distanzaPerc / 100;
-    final double lngStep = lngDiff * distanzaPerc / 100;
-
-    for (int i = 0; i < 100; i++) {
-      await Future.delayed(const Duration(milliseconds: 40), () {
-        if (mounted) {
-          setState(() {
-            _posizioneUtente = LatLng(
-              _posizioneUtente.latitude + latStep,
-              _posizioneUtente.longitude + lngStep,
-            );
-            _mapController.move(_posizioneUtente, 16);
-          });
-        }
-      });
-    }
-
-    if (!mounted) return;
-    _mostraPopup(incidente);
-  }
-
-  void _mostraPopup(SegnalazioneModel incidente) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierLabel: "Incidente",
-      pageBuilder: (context, animation1, animation2) {
-        return Align(
-          alignment: Alignment.topCenter,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              margin: const EdgeInsets.only(top: 50, left: 16, right: 16),
-              padding: const EdgeInsets.all(20),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha((0.3 * 255).toInt()),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.warning, color: Colors.red, size: 48),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "Incidente rilevato",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Prestare attenzione: pericolo imminente.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.red),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "Vuoi visualizzare le linee guida?",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 25),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DettaglioSegnalazionePage(
-                            segnalazioneId: incidente.id,
-                          ),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 16,
-                      ),
-                    ),
-                    child: const Text("Vai alle linee guida"),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.grey),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 16,
-                      ),
-                    ),
-                    child: const Text("No"),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation1, animation2, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, -1),
-            end: Offset.zero,
-          ).animate(animation1),
-          child: child,
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 300),
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
