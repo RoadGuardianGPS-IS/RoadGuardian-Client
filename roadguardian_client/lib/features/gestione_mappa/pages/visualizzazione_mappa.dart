@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../gestione_profilo_utente/pages/login_page.dart';
 import '../../gestione_profilo_utente/pages/area_personale_page.dart';
@@ -43,9 +44,28 @@ class _MappaPageState extends State<MappaPage> {
     super.initState();
     _mapController = MapController();
     _posizioneUtente = napoliLatLng;
+    _loadSavedPosition();
     _caricaSegnalazioni();
     _initializeNotifications();
     _startPositionUpdateTimer();
+  }
+
+  Future<void> _loadSavedPosition() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lat = prefs.getDouble('user_position_lat');
+    final lng = prefs.getDouble('user_position_lng');
+    
+    if (lat != null && lng != null && mounted) {
+      setState(() {
+        _posizioneUtente = LatLng(lat, lng);
+      });
+    }
+  }
+
+  Future<void> _savePosition(LatLng position) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('user_position_lat', position.latitude);
+    await prefs.setDouble('user_position_lng', position.longitude);
   }
 
   @override
@@ -285,6 +305,7 @@ class _MappaPageState extends State<MappaPage> {
       _posizioneUtente = nuovaPosizione;
     });
 
+    _savePosition(nuovaPosizione);
     _sendPositionToServer();
   }
 

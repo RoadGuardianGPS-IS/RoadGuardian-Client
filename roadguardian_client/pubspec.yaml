@@ -36,6 +36,9 @@ dependencies:
   
   # Local notifications per mostrare notifiche in foreground
   flutter_local_notifications: ^18.0.1
+  
+  # Shared Preferences per salvare dati localmente
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
