@@ -10,6 +10,8 @@ import '../../gestione_segnalazione/pages/dettaglio_segnalazione_page.dart';
 import '../../gestione_segnalazione/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/segnalazione_service.dart';
 import 'package:roadguardian_client/services/api/profile_service.dart';
+import 'package:roadguardian_client/services/api/notification_service.dart';
+import 'package:roadguardian_client/services/api/mappa_service.dart';
 
 class MappaPage extends StatefulWidget {
   const MappaPage({super.key});
@@ -28,11 +30,15 @@ class _MappaPageState extends State<MappaPage> {
   List<SegnalazioneModel> _segnalazioni = [];
   final SegnalazioneService _segnalazioneService = SegnalazioneService();
   final ProfiloService _profiloService = ProfiloService();
+  final NotificationService _notificationService = NotificationService();
+  final MappaService _mappaService = MappaService();
   static final List<Marker> _persistentExtraMarkers = [];
 
   bool _showSegnalazioneVeloce = false;
   final Set<String> _segnalazioniNotificate =
       {}; // Traccia le segnalazioni già notificate
+
+  Timer? _positionUpdateTimer; // Timer per aggiornamento posizione ogni 30 secondi
 
   @override
   void initState() {
@@ -40,6 +46,54 @@ class _MappaPageState extends State<MappaPage> {
     _mapController = MapController();
     _posizioneUtente = napoliLatLng;
     _caricaSegnalazioni();
+    _initializeNotifications();
+    _startPositionUpdateTimer();
+  }
+
+  @override
+  void dispose() {
+    _positionUpdateTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Inizializza il servizio notifiche FCM
+  Future<void> _initializeNotifications() async {
+    await _notificationService.initialize();
+    debugPrint('🔔 Notifiche inizializzate. Token: ${_notificationService.fcmToken}');
+  }
+
+  /// Avvia il timer che invia la posizione al server ogni 30 secondi
+  void _startPositionUpdateTimer() {
+    // Invia subito la prima volta
+    _sendPositionToServer();
+
+    // Poi ogni 30 secondi
+    _positionUpdateTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _sendPositionToServer(),
+    );
+    debugPrint('⏱️ Timer aggiornamento posizione avviato (ogni 30 secondi)');
+  }
+
+  /// Invia la posizione corrente al server
+  Future<void> _sendPositionToServer() async {
+    final fcmToken = _notificationService.fcmToken;
+    
+    if (fcmToken == null) {
+      debugPrint('⚠️ Token FCM non disponibile, invio posizione senza token');
+    }
+
+    final success = await _mappaService.updateUserPosition(
+      latitude: _posizioneUtente.latitude,
+      longitude: _posizioneUtente.longitude,
+      fcmToken: fcmToken,
+    );
+
+    if (success) {
+      debugPrint('✅ Posizione inviata al server: ${_posizioneUtente.latitude}, ${_posizioneUtente.longitude}');
+    } else {
+      debugPrint('❌ Errore invio posizione al server');
+    }
   }
 
   Future<void> _caricaSegnalazioni() async {
@@ -100,26 +154,26 @@ class _MappaPageState extends State<MappaPage> {
             alignment: Alignment.center,
             children: [
               Container(
-                width: 80,
-                height: 80,
+                width: 140,
+                height: 140,
                 decoration: BoxDecoration(
-                  color: Colors.red.withAlpha((0.2 * 255).toInt()),
+                  color: Colors.red.withAlpha((0.4 * 255).toInt()),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.red, width: 2),
+                  border: Border.all(color: Colors.red, width: 4),
                 ),
               ),
               Container(
-                width: 40,
-                height: 40,
+                width: 70,
+                height: 70,
                 decoration: BoxDecoration(
                   color: Colors.red,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: Colors.white, width: 4),
                 ),
                 child: const Icon(
                   Icons.priority_high,
                   color: Colors.white,
-                  size: 24,
+                  size: 40,
                 ),
               ),
             ],
@@ -233,6 +287,16 @@ class _MappaPageState extends State<MappaPage> {
     setState(() {
       _mapController.move(_posizioneUtente, _currentZoom);
     });
+  }
+
+  /// Sposta il marker della posizione utente e invia immediatamente al server
+  void _aggiornaPosizioneUtente(LatLng nuovaPosizione) {
+    setState(() {
+      _posizioneUtente = nuovaPosizione;
+    });
+    
+    // Invia immediatamente la nuova posizione al server
+    _sendPositionToServer();
   }
 
   void _verificaProssimitaIncidenti() {
@@ -403,11 +467,11 @@ class _MappaPageState extends State<MappaPage> {
               zoom: _currentZoom,
               onTap: (tapPosition, point) {
                 // Tap sulla mappa per spostare il marker utente
-                setState(() {
-                  _posizioneUtente = point;
-                });
-                // Verifica la prossimità dopo lo spostamento
-                _verificaProssimitaIncidenti();
+                _aggiornaPosizioneUtente(point);
+              },
+              onLongPress: (tapPosition, point) {
+                // LongPress sulla mappa per spostare il marker utente
+                _aggiornaPosizioneUtente(point);
               },
             ),
             children: [
@@ -415,24 +479,64 @@ class _MappaPageState extends State<MappaPage> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.roadguardian',
               ),
+              // Cerchio blu di 3km attorno alla posizione utente
+              CircleLayer(
+                circles: [
+                  CircleMarker(
+                    point: _posizioneUtente,
+                    radius: 3000, // 3 km in metri
+                    useRadiusInMeter: true,
+                    color: Colors.blue.withOpacity(0.2),
+                    borderColor: Colors.blue.withOpacity(0.6),
+                    borderStrokeWidth: 3,
+                  ),
+                ],
+              ),
               MarkerLayer(
                 markers: [
                   Marker(
                     point: _posizioneUtente,
-                    width: 60,
-                    height: 60,
-                    builder: (ctx) => Container(
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withAlpha(51),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Container(
-                        margin: const EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
+                    width: 70,
+                    height: 70,
+                    builder: (ctx) => GestureDetector(
+                      onPanUpdate: (details) {
+                        // Converte il movimento in coordinate geografiche
+                        // Questa è una semplificazione, per un drag preciso
+                        // servirebbe calcolare la conversione pixel->coordinate
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 70,
+                            height: 70,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withAlpha(51),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Container(
+                            width: 35,
+                            height: 35,
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                            ),
+                            child: const Icon(
+                              Icons.my_location,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const Positioned(
+                            bottom: 0,
+                            child: Text(
+                              '📍',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

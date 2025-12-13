@@ -30,6 +30,13 @@ dependencies:
   # JSON Annotation per serializzazione
   json_annotation: ^4.9.0
 
+  # Firebase per notifiche push
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.4
+  
+  # Local notifications per mostrare notifiche in foreground
+  flutter_local_notifications: ^18.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

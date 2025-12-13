@@ -1,10 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'features/gestione_profilo_utente/models/user_model.dart'; // RIMOSSO PER BRANCH MAPPA
 import 'features/gestione_mappa/pages/visualizzazione_mappa.dart';
+import 'services/api/notification_service.dart';
 // import 'features/gestione_profilo_utente/pages/modifica_profilo_page.dart'; // RIMOSSO PER BRANCH MAPPA
 // import 'features/gestione_profilo_utente/pages/area_personale_page.dart'; // RIMOSSO PER BRANCH MAPPA
 
-void main() {
+/// Handler per notifiche in background (deve essere top-level)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('📬 Notifica ricevuta in background: ${message.messageId}');
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    // Inizializza Firebase
+    await Firebase.initializeApp();
+    debugPrint('🔥 Firebase inizializzato');
+    
+    // Registra l'handler per le notifiche in background
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    debugPrint('❌ Errore inizializzazione Firebase: $e');
+    debugPrint('⚠️ Assicurati di aver configurato google-services.json');
+  }
+  
   runApp(const MyApp());
 }
 
