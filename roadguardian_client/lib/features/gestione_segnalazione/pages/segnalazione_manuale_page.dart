@@ -8,7 +8,7 @@ class SegnalazioneManualePage extends StatefulWidget {
   final double latitude;
   final double longitude;
   final String indirizzoStimato;
-  final VoidCallback? onSegnalazioneConfermata;
+  final Function(String?)? onSegnalazioneConfermata;
 
   const SegnalazioneManualePage({
     super.key,
@@ -40,7 +40,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     "Incendio veicolo",
   ];
 
-  final List<String> _prioritaIncidente = ["bassa", "media", "alta", "critica"];
+  final List<String> _prioritaIncidente = ["bassa", "media", "alta"];
 
   final Color customBackground = const Color(0xFFF0F0F0);
   final Color customPurple = const Color(0xFF6561C0);
@@ -110,7 +110,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         "bassa": "low",
         "media": "medium",
         "alta": "high",
-        "critica": "high",
       };
 
       final now = DateTime.now();
@@ -141,6 +140,14 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
       }
 
       if (response.statusCode == 201) {
+        // Estrai l'ID della segnalazione dalla risposta
+        String? segnalazioneId;
+        try {
+          final responseData = jsonDecode(response.body);
+          segnalazioneId = responseData['_id'] ?? responseData['id'];
+        } catch (e) {
+          debugPrint('Errore parsing ID segnalazione: $e');
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -150,7 +157,7 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
             ),
           );
 
-          widget.onSegnalazioneConfermata?.call();
+          widget.onSegnalazioneConfermata?.call(segnalazioneId);
           Navigator.pop(context);
         }
       } else {
@@ -366,8 +373,6 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
         return 'Media';
       case 'alta':
         return 'Alta';
-      case 'critica':
-        return 'Critica';
       default:
         return priority;
     }

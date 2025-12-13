@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:roadguardian_client/features/gestione_segnalazione/models/segnalazione_model.dart';
-import 'package:roadguardian_client/services/api/mock_segnalazione_service.dart';
+import 'package:roadguardian_client/services/api/segnalazione_service.dart';
 
 class DettaglioSegnalazionePage extends StatefulWidget {
   final String segnalazioneId;
@@ -16,7 +16,7 @@ class DettaglioSegnalazionePage extends StatefulWidget {
 class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
   SegnalazioneModel? _segnalazione;
   bool _isLoading = true;
-  final MockSegnalazioneService _service = MockSegnalazioneService();
+  final SegnalazioneService _service = SegnalazioneService();
 
   @override
   void initState() {

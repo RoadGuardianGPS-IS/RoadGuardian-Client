@@ -33,9 +33,10 @@ class _MappaPageState extends State<MappaPage> {
   final ProfiloService _profiloService = ProfiloService();
   final NotificationService _notificationService = NotificationService();
   final MappaService _mappaService = MappaService();
-  static final List<Marker> _persistentExtraMarkers = [];
+  final Map<String, String> _manualMarkerIds = {}; // Mappa posizione -> ID segnalazione
 
   bool _showSegnalazioneVeloce = false;
+  bool _isLoadingSegnalazioni = true;
 
   Timer? _positionUpdateTimer; // Timer per aggiornamento posizione ogni 30 secondi
 
@@ -45,16 +46,19 @@ class _MappaPageState extends State<MappaPage> {
     _mapController = MapController();
     _posizioneUtente = napoliLatLng;
     _loadSavedPosition();
-    _caricaSegnalazioni();
     _initializeNotifications();
     _startPositionUpdateTimer();
+    // Carica le segnalazioni subito dopo l'inizializzazione
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _caricaSegnalazioni();
+    });
   }
 
   Future<void> _loadSavedPosition() async {
     final prefs = await SharedPreferences.getInstance();
     final lat = prefs.getDouble('user_position_lat');
     final lng = prefs.getDouble('user_position_lng');
-    
+
     if (lat != null && lng != null && mounted) {
       setState(() {
         _posizioneUtente = LatLng(lat, lng);
@@ -92,7 +96,7 @@ class _MappaPageState extends State<MappaPage> {
 
   Future<void> _sendPositionToServer() async {
     final fcmToken = _notificationService.fcmToken;
-    
+
     if (fcmToken == null) {
       debugPrint('⚠️ Token FCM non disponibile, invio posizione senza token');
     }
@@ -111,26 +115,33 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   Future<void> _caricaSegnalazioni() async {
+    if (mounted) {
+      setState(() {
+        _isLoadingSegnalazioni = true;
+      });
+    }
     try {
+      debugPrint('📍 Caricamento segnalazioni attive...');
       final tutteLeSegnalazioni = await _segnalazioneService
           .getSegnalazioniAttive();
-      const Distance distanceCalculator = Distance();
-      final segnalazioniVicine = tutteLeSegnalazioni.where((s) {
-        final double metri = distanceCalculator.as(
-          LengthUnit.Meter,
-          napoliLatLng,
-          LatLng(s.latitude, s.longitude),
-        );
-        return metri <= 3000;
-      }).toList();
+      debugPrint('📍 Trovate ${tutteLeSegnalazioni.length} segnalazioni dal server');
 
+      // Mostra tutte le segnalazioni senza filtro di distanza
+      // per permettere la visualizzazione completa
       if (mounted) {
         setState(() {
-          _segnalazioni = segnalazioniVicine;
+          _segnalazioni = tutteLeSegnalazioni;
+          _isLoadingSegnalazioni = false;
         });
+        debugPrint('✅ Segnalazioni caricate: ${_segnalazioni.length}');
       }
     } catch (e) {
-      debugPrint("Errore caricamento segnalazioni: $e");
+      debugPrint("❌ Errore caricamento segnalazioni: $e");
+      if (mounted) {
+        setState(() {
+          _isLoadingSegnalazioni = false;
+        });
+      }
     }
   }
 
@@ -141,12 +152,14 @@ class _MappaPageState extends State<MappaPage> {
         builder: (context) => SegnalazioneManualePage(
           latitude: _posizioneUtente.latitude,
           longitude: _posizioneUtente.longitude,
-          onSegnalazioneConfermata: () {
-
+          onSegnalazioneConfermata: (String? segnalazioneId) {
+            // Salva l'ID per rendere il marker cliccabile
             aggiungiMarker(
               LatLng(_posizioneUtente.latitude, _posizioneUtente.longitude),
+              segnalazioneId: segnalazioneId,
             );
 
+            // Ricarica le segnalazioni dal server
             Future.delayed(
               const Duration(milliseconds: 500),
               _caricaSegnalazioni,
@@ -157,44 +170,11 @@ class _MappaPageState extends State<MappaPage> {
     );
   }
 
-  void aggiungiMarker(LatLng posizione) {
-    setState(() {
-      _persistentExtraMarkers.add(
-        Marker(
-          point: posizione,
-          width: 100,
-          height: 100,
-          builder: (ctx) => Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  color: Colors.red.withAlpha((0.4 * 255).toInt()),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.red, width: 4),
-                ),
-              ),
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
-                ),
-                child: const Icon(
-                  Icons.priority_high,
-                  color: Colors.white,
-                  size: 40,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
+  void aggiungiMarker(LatLng posizione, {String? segnalazioneId}) {
+    final markerKey = '${posizione.latitude}_${posizione.longitude}';
+    if (segnalazioneId != null) {
+      _manualMarkerIds[markerKey] = segnalazioneId;
+    }
   }
 
   void _toggleSegnalazioneVeloce() {
@@ -218,9 +198,6 @@ class _MappaPageState extends State<MappaPage> {
   }
 
   void _confermaSegnalazioneVeloce() {
-
-    aggiungiMarker(_posizioneUtente);
-
     if (_profiloService.currentUser != null) {
       final userId = _profiloService.currentUser!.id;
 
@@ -235,11 +212,8 @@ class _MappaPageState extends State<MappaPage> {
           .then((ok) {
             if (!mounted) return;
             if (ok) {
-
-              Future.delayed(
-                const Duration(milliseconds: 400),
-                _caricaSegnalazioni,
-              );
+              // Ricarica le segnalazioni dal server per ottenere quella appena creata
+              _caricaSegnalazioni();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('📍 Segnalazione inviata al server'),
@@ -266,7 +240,6 @@ class _MappaPageState extends State<MappaPage> {
             );
           });
     } else {
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Segnalazione piazzata localmente (login mancante)'),
@@ -577,7 +550,6 @@ class _MappaPageState extends State<MappaPage> {
                   );
                 }).toList(),
               ),
-              MarkerLayer(markers: _persistentExtraMarkers),
             ],
           ),
           if (_showSegnalazioneVeloce)
@@ -720,6 +692,40 @@ class _MappaPageState extends State<MappaPage> {
               ],
             ),
           ),
+          // Indicatore di caricamento
+          if (_isLoadingSegnalazioni)
+            Positioned(
+              top: 50,
+              left: MediaQuery.of(context).size.width / 2 - 30,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(50),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Caricamento...',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
