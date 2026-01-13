@@ -53,9 +53,30 @@ class SegnalazioneModel {
       immagineUrl: json['immagine_url'],
       lineeGuida:
           (json['linee_guida'] as List<dynamic>?)
-              ?.map((e) => e.toString())
+              ?.map((e) {
+                String s = e.toString().trim();
+                // Rimuove apici iniziali
+                if (s.startsWith('"') || s.startsWith("'")) {
+                  s = s.substring(1);
+                }
+                // Rimuove apici finali
+                if (s.endsWith('"') || s.endsWith("'")) {
+                  s = s.substring(0, s.length - 1);
+                }
+                return s.trim();
+              })
+              .where((e) => e.isNotEmpty && e != ':' && e != '.' && e.length > 2)
               .toList() ??
           [],
     );
+  }
+
+  /// Verifica se la segnalazione è di tipo veloce
+  /// Ritorna true se la descrizione contiene 'segnalazione veloce'
+  bool get isSegnalazioneVeloce {
+    final desc = descrizione.toLowerCase().trim();
+    return desc == 'segnalazione veloce' ||
+           desc.contains('segnalazione veloce') ||
+           desc.contains('funzione veloce');
   }
 }

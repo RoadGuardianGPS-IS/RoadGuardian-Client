@@ -100,19 +100,17 @@ class _SegnalazioneManualePageState extends State<SegnalazioneManualePage> {
     try {
 
       final Map<String, String> categoriaMapping = {
-        "Tamponamento": "tamponamento",
-        "Collisione con ostacolo": "collisione laterale",
-        "Veicolo fuori strada": "deragliamento",
-        "Investimento": "investimento",
-        "Incendio veicolo": "ostacolo sulla strada",
+        "Tamponamento": "Tamponamento",
+        "Collisione con ostacolo": "Collisione con ostacolo",
+        "Veicolo fuori strada": "Veicolo Fuori Strada",
+        "Investimento": "Investimento",
+        "Incendio veicolo": "Incendio Veicolo",
       };
 
-      // Il server accetta solo il valore 'high' per il campo `seriousness`.
-      // Per evitare 422, inviamo sempre 'high' (server-side dovrebbe essere aggiornato
-      // per gestire più livelli di gravità in futuro).
+      // Mapping corretto delle priorità
       final Map<String, String> prioritaMapping = {
-        "bassa": "high",
-        "media": "high",
+        "bassa": "low",
+        "media": "medium",
         "alta": "high",
       };
 

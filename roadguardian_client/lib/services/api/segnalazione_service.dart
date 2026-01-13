@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:roadguardian_client/features/gestione_segnalazione/models/segnalazione_model.dart';
 
@@ -47,6 +48,9 @@ class SegnalazioneService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
+        
+        // Debug: stampa la descrizione ricevuta dal server
+        debugPrint('DEBUG - Descrizione ricevuta: ${data['description']}');
 
         // Proviamo a recuperare le linee guida da endpoint dedicato.
         try {
@@ -116,6 +120,50 @@ class SegnalazioneService {
       return response.statusCode == 201;
     } catch (e) {
       throw Exception('Errore creazione segnalazione: $e');
+    }
+  }
+
+  /// Recupera le linee guida AI per una specifica segnalazione.
+  /// Scopo: Ottenere linee guida generate dall'AI per un incidente.
+  /// Parametri: id - L'ID della segnalazione.
+  /// Valore di ritorno: Future<List<String>> - Lista delle linee guida.
+  /// Eccezioni: Eccezione generica se il fetch fallisce.
+  Future<List<String>> getLineeGuidaAI(String id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/segnalazione/lineeguidaai/$id'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        // Usa utf8.decode per gestire correttamente i caratteri accentati
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        final dynamic data = jsonDecode(decodedBody);
+        
+        // Se la risposta è una lista di stringhe
+        if (data is List) {
+          return data.map((e) => e.toString()).toList();
+        }
+        
+        // Se la risposta è una singola stringa, dividiamola in punti
+        if (data is String) {
+          final List<String> list = data
+              .split(RegExp(r'\.|\n'))
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .map((s) => s.endsWith('.') ? s : '$s.')
+              .toList();
+          return list;
+        }
+        
+        return <String>[];
+      } else {
+        throw Exception(
+          'Errore caricamento linee guida AI: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Errore: $e');
     }
   }
 }

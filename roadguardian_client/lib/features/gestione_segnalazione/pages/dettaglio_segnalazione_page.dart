@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:roadguardian_client/features/gestione_segnalazione/models/segnalazione_model.dart';
 import 'package:roadguardian_client/services/api/segnalazione_service.dart';
+import 'package:roadguardian_client/features/gestione_segnalazione/pages/linee_guida_ai_overlay.dart';
 
 /// DettaglioSegnalazionePage: Pagina dettagliata di una segnalazione con tutte le informazioni.
 class DettaglioSegnalazionePage extends StatefulWidget {
@@ -44,6 +45,22 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
     } catch (e) {
       debugPrint("Errore: $e");
     }
+  }
+
+  void _apriLineeGuidaAI(BuildContext context) {
+    /// Apre l'overlay delle linee guida AI.
+    /// Scopo: Navigare alla pagina overlay per visualizzare le linee guida AI.
+    /// Parametri: context - BuildContext per la navigazione.
+    /// Valore di ritorno: void.
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LineeGuidaAIOverlay(
+          segnalazioneId: widget.segnalazioneId,
+          titoloSegnalazione: _segnalazione!.titolo,
+        ),
+      ),
+    );
   }
 
   @override
@@ -254,6 +271,27 @@ class _DettaglioSegnalazionePageState extends State<DettaglioSegnalazionePage> {
                         ),
                       ),
                       const SizedBox(height: 30),
+                    ],
+
+                    // Pulsante Linee Guida AI - visibile solo per segnalazioni non veloci
+                    if (!_segnalazione!.isSegnalazioneVeloce) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _apriLineeGuidaAI(context),
+                          icon: const Icon(Icons.auto_awesome),
+                          label: const Text("LINEE GUIDA AI"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
                     ],
 
                     SizedBox(
